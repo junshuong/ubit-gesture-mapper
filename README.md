@@ -11,55 +11,63 @@
 ## Installing
 
 ### Client
-```
+
+```bash
 cd client
 npm i
 ```
 
 ### Server
+
 It is recommended to use a python virtual environment or similar to avoid all the dependancies being added system wide to your python install.
 
 To do this on windows:
-```
+
+```bash
 cd server
 python -m venv venv
 venv\Sripts\activate
 ```
+
 Note the script to activate the venv may be slightly different on other platforms.
 
 Then installing the dependancies once the virtual environment is active:
-```
+
+```bash
 pip install -r requirements.txt
 ```
 
 Also if you're installing right now you'll need to ensure the database is created before it can be used. From the venv run:
 
-```
+```bash
 python database.py
 ```
+
 Should be good to go then. This will be unnecessary with a future change.
 
 ## Running
 
 To run both the client and server respectively it is:
-```
+
+```bash
 cd client
 npm start
 ```
 
-```
+```bash
 cd server
 flask run
 ```
 
 ### Ngrok
+
 Both the server and the client need to be ngrokked. Also the ngrokked url needs to be set in the client. Currently that url is located at the top of client/src/features/recorder/Recorder.txt
 
-```
+```bash
 npm install --global ngrok
 ```
 
-```
+```bash
 ngrok http -region=eu 8080
 ```
 
