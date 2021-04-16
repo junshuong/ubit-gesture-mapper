@@ -8,6 +8,13 @@
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
 
+[![micro:bit](https://img.shields.io/badge/micro%3Abit-v2-%2300ED00?style=for-the-badge&logo=micro:bit)](https://microbit.org/new-microbit/)
+[![Node](https://img.shields.io/badge/Node-v14+-339933?style=for-the-badge&logo=node.js)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-v17-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
+[![Redux](https://img.shields.io/badge/Redux-v7.2-764ABC?style=for-the-badge&logo=redux)](https://redux.js.org/)
+[![Python](https://img.shields.io/badge/Python-3-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2-FF6F00?style=for-the-badge&logo=TensorFlow)](https://www.tensorflow.org/)
+
 ## Installing
 
 ### Client
@@ -94,8 +101,6 @@ Note default ports of server and client are 5000 and 8000 respectively.
 ---
 
 ## Contributions and Thanks
-
-## Contributors
 
 This project was developed by Internet of Things Applications class 2021 taught by Jason Berry.
 
