@@ -96,6 +96,7 @@ function DataChart() {
             ]}
             options={{
                 aspectRatio: 1.5,
+                animation: false
             }}
             labels={historySplit.indexs}
         />
