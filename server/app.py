@@ -19,7 +19,8 @@ def gesture():
 def create_model():
     json_data = request.get_json()
     name = json_data["name"]
-    add_model(name)
+    tickCount = json_data["tickCount"]
+    add_model(name, tickCount)
     return jsonify(success=True)
 
 @app.route('/get_models', methods=['GET'])

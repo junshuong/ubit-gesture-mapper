@@ -5,6 +5,7 @@ db = Database()
 class Model(db.Entity):
     name = Required(str)
     gestures = Set('Gesture')
+    tickCount = Required(int)
 
 class Gesture(db.Entity):
     model = Required(Model)
@@ -37,8 +38,8 @@ def get_all_gestures():
     return result
 
 @db_session
-def add_model(name):
-    model = Model(name=name)
+def add_model(name, tickCount):
+    model = Model(name=name, tickCount=tickCount)
     commit()
 
 @db_session
