@@ -5,6 +5,8 @@ from database import *
 app = Flask(__name__)
 CORS(app)
 
+setup_database()
+
 @app.route('/gesture', methods=['POST'])
 def gesture():
     json_data = request.get_json()
