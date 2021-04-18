@@ -20,7 +20,8 @@ def create_model():
     json_data = request.get_json()
     name = json_data["name"]
     tickCount = json_data["tickCount"]
-    add_model(name, tickCount)
+    description = json_data["description"]
+    add_model(name, description, tickCount)
     return jsonify(success=True)
 
 @app.route('/get_models', methods=['GET'])
