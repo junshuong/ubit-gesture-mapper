@@ -3,13 +3,9 @@ import { Button, Checkbox, makeStyles, TextField, Typography } from '@material-u
 import Axios from 'axios';
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
+import cfg from '../../config.json'
 import { store } from '../../app/store';
 import { AccelerometerState, clearHistory, selectHistory, setTicks } from '../microbit/microbitSlice';
-
-/**
- * Needs to be changed according the the ever changing ngrok server url. (for now)
- */
-const SERVER_URL = "https://b0e3be9f5acf.eu.ngrok.io"
 
 const useStyles = makeStyles((theme) => ({
     sendForm: {
@@ -22,7 +18,6 @@ const useStyles = makeStyles((theme) => ({
         },
     }
 }));
-
 
 export function Recorder() {
     const history = useSelector(selectHistory);
@@ -116,7 +111,7 @@ function postGesture(ticks: number, checked: boolean, data: AccelerometerState[]
         data: data
     }
 
-    Axios.post(SERVER_URL + "/gesture", payload).then((res) => {
+    Axios.post(`${cfg.server_url}/gesture`, payload).then((res) => {
         console.log(res.data);
     }).catch((res) => {
         console.log(res);
