@@ -1,5 +1,9 @@
 .App {
   text-align: center;
+  background-color: white;
+  position: absolute;
+  min-height: 100%;
+  width: 100%;
 }
 
 .App-header {
