@@ -45,8 +45,8 @@ def add_model(name, description, tickCount):
 
 @db_session
 def get_all_models():
-    result = select((m.id, m.name) for m in Model)[:]
-    return [{"id": i, "name": v} for i, v in result]
+    result = select((m.id, m.name, m.description) for m in Model)[:]
+    return [{"id": i, "name": v, "description": d} for i, v, d in result]
 
 @db_session
 def delete_gesture_model(model_id):
