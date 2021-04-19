@@ -5,7 +5,9 @@ import './App.css';
 import { Alert } from './features/alert/Alert';
 import { MicrobitData } from './features/microbit/MicrobitData';
 import { Recorder } from './features/recorder/Recorder';
+import { Models } from './features/models/Models';
 import { connectMicrobitDevice, disconnectMicrobit } from './uBit/uBit';
+import { Model } from './features/models/Model';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -30,9 +32,11 @@ function App() {
         <RecordHeader />
         <Alert />
         <Switch>
-          <Route exact path="/record">
-            <Recorder />
+          <Route exact path="/recorder/:id" component={Recorder}/>
+          <Route exact path="/models">
+            <Models />
           </Route>
+          <Route exact path="/model/:id" component={Model}/>
           <Route path="/">
             <DataHeader />
             <MicrobitData />
@@ -49,16 +53,16 @@ function RecordHeader() {
     <AppBar position="static" className={classes.root}>
       <Toolbar>
         <Typography variant="h6" className={classes.title}>
-          uBit Data Sender
+          uBit Gesture Mapper
           </Typography>
         <Link to="/" className={classes.link}>
           <Button color="inherit">
-            View Microbit
+            Microbit
           </Button>
         </Link>
-        <Link to="/record" className={classes.link}>
+        <Link to="/models" className={classes.link}>
           <Button color="inherit">
-            Data Recorder
+            Models
           </Button>
         </Link>
       </Toolbar>
