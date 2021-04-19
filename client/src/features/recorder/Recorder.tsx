@@ -75,7 +75,7 @@ export function Recorder(props: { match: { params: { id: any } }, history: strin
         </Paper>
         <Paper variant="outlined" className={classes.root}>
           <div className={classes.recordForm}>
-            <Typography>Capture Frames</Typography>
+            <Typography>Countdown</Typography>
             <CleanSlider valueLabelDisplay="on" defaultValue={3} min={0} max={10} onChange={(e, v) => setCountdown(!Array.isArray(v) ? v : v[0])} />
             <Typography>Ticks to Record</Typography>
             <CleanSlider valueLabelDisplay="on" defaultValue={activeModel.tickCount} min={activeModel.tickCount} max={activeModel.tickCount + 100} onChange={(e, v) => setTicks(!Array.isArray(v) ? v : v[0])} />
@@ -85,7 +85,7 @@ export function Recorder(props: { match: { params: { id: any } }, history: strin
         <DataChart />
         <Paper variant="outlined" className={classes.root}>
           <div className={classes.sendForm}>
-            <Typography className={classes.label}>Countdown</Typography>
+            <Typography className={classes.label}>Capture Frames</Typography>
             <CleanSlider suppressContentEditableWarning suppressHydrationWarning valueLabelDisplay="on" value={frames} defaultValue={activeModel.tickCount} min={0} max={ticks} onChange={handleChange} marks={[{ value: frames - activeModel.tickCount }]} />
             <Typography>Is correct: <Checkbox checked={checked} onChange={(e) => setChecked(e.target.checked)} /></Typography>
             <Button variant="contained" color="primary" onClick={() => postGesture(checked, history, frames - activeModel.tickCount, frames)}>Send Data</Button>
