@@ -86,7 +86,7 @@ Note default ports of server and client are 5000 and 3000 respectively.
   - [ ] Handle conversion of realtime data to tensors to feed into the model.
   - [ ] Pass out the results to be used by other components.
 - [ ] Create a bunch of bad training data.
-- [ ] Audio component
+- [x] Audio component
   - [ ] Handle a number of different audio sounds/files
   - [ ] Play them according to the state of the currently active model.
 
@@ -97,6 +97,8 @@ Note default ports of server and client are 5000 and 3000 respectively.
 This project was developed by Internet of Things Applications class 2021 taught by Jason Berry.
 
 Based and influenced by code from https://github.com/WIT-IoT-Apps-2021/microbit-ble-vue
+
+Web audio sound effect nodes based on https://github.com/cwilso/Audio-Input-Effects
 
 ## All Contributors ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
