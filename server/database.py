@@ -24,8 +24,8 @@ def setup_database():
     db.generate_mapping(create_tables=True)
 
 @db_session
-def add_gesture(checked, data):
-    ges = Gesture(classification=checked)
+def add_gesture(checked, data, model_id):
+    ges = Gesture(classification=checked, model=model_id)
     for tick in data:
         DataTick(accelerometerX=tick["x"], accelerometerY=tick["y"], accelerometerZ=tick["z"], gesture=ges)
     commit()

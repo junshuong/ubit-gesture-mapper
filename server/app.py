@@ -11,8 +11,9 @@ setup_database()
 def gesture():
     json_data = request.get_json()
     checked = json_data["checked"]
+    model_id = json_data["model_id"]
     data = json_data["data"]
-    add_gesture(checked, data)
+    add_gesture(checked, data, model_id)
     return jsonify(success=True)
 
 @app.route('/create_model', methods=['POST'])
