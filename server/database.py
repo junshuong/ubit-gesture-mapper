@@ -31,9 +31,11 @@ def add_gesture(checked, data, model_id):
     commit()
 
 @db_session
-def get_all_gestures():
+def get_all_gestures(model_id):
+    current_model = Model[model_id]
+
     result = select((g.id, g.classification, d.accelerometerX, d.accelerometerY, d.accelerometerY, d.id)
-                    for g in Gesture
+                    for g in current_model.gestures
                     for d in g.data)[:]
     print(f"len res: {len(result)}")
     return result

@@ -1,3 +1,7 @@
+# Tensorflow
+learners
+checkpoints
+
 # Sqlite
 *.sqlite
 
