@@ -124,7 +124,6 @@ function ModelCard(props: any) {
 
 function renderModels() {
   axios.get(`${cfg.server_url}/get_models`).then((res) => {
-    console.log(res);
     store.dispatch(setModels(res.data["models"]))
   }).catch((err) => {
     console.log(err);
@@ -132,14 +131,12 @@ function renderModels() {
 }
 
 function postModel(name: string, description: string, tickCount: number) {
-  console.log(`Creating new model id ${name}`);
   let payload = {
     name: name,
     description: description,
     tickCount: tickCount
   }
-  axios.post(`${cfg.server_url}/create_model`, payload).then((res) => {
-    console.log(res);
+  axios.post(`${cfg.server_url}/create_model`, payload).then(() => {
     renderModels();
   }).catch((err) => {
     console.log(err);

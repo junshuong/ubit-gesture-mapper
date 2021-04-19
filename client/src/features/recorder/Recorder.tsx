@@ -180,8 +180,7 @@ function postGesture(checked: boolean, data: AccelerometerState[], frames: numbe
     data: data
   }
 
-  Axios.post(`${cfg.server_url}/gesture`, payload).then((res) => {
-    console.log(res.data);
+  Axios.post(`${cfg.server_url}/gesture`, payload).then(() => {
   }).catch((res) => {
     console.log(res);
   })

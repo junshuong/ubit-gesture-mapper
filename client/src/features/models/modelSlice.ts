@@ -20,7 +20,6 @@ export const modelSlice = createSlice({
     initialState,
     reducers: {
         setModels: (state, action: PayloadAction<[ModelState]>) => {
-            console.log(action.payload);
             state.models = action.payload;
         }
     }

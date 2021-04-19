@@ -45,7 +45,6 @@ export const activeModelSlice = createSlice({
 })
 
 export const selectActiveModel = (state: RootState) => {
-    console.log("Selected model");
     return state.activeModel;
 };
 export const selectActiveModelName = (state: RootState) => state.activeModel.name;
