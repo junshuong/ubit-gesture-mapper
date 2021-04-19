@@ -88,7 +88,7 @@ export function Recorder(props: { match: { params: { id: any } }, history: strin
             <Typography className={classes.label}>Capture Frames</Typography>
             <CleanSlider suppressContentEditableWarning suppressHydrationWarning valueLabelDisplay="on" value={frames} defaultValue={activeModel.tickCount} min={0} max={ticks} onChange={handleChange} marks={[{ value: frames - activeModel.tickCount }]} />
             <Typography>Is correct: <Checkbox checked={checked} onChange={(e) => setChecked(e.target.checked)} /></Typography>
-            <Button variant="contained" color="primary" onClick={() => postGesture(checked, history, frames - activeModel.tickCount, frames)}>Send Data</Button>
+            <Button variant="contained" color="primary" onClick={() => postGesture(checked, history, activeModel.tickCount, frames, id)}>Send Data</Button>
           </div>
         </Paper>
       </div>
@@ -173,11 +173,12 @@ const CleanSlider = withStyles({
 /**
  * Posts a gesture to the server.
  */
-function postGesture(checked: boolean, data: AccelerometerState[], frames: number, lastFrame: number) {
+function postGesture(checked: boolean, data: AccelerometerState[], frames: number, lastFrame: number, model_id: number) {
   data = data.slice(lastFrame - frames, lastFrame);
   let payload = {
     checked: checked,
-    data: data
+    data: data,
+    model_id: model_id
   }
 
   Axios.post(`${cfg.server_url}/gesture`, payload).then(() => {
