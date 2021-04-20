@@ -5,7 +5,7 @@ import numpy as np
 import os
 from platform import system
 
-setup_database()
+#setup_database()
 
 def import_data(model_id):
     raw_data = get_all_gestures(model_id)
@@ -75,7 +75,7 @@ def train_new_model(model_id):
 def convert_to_tfjs(model_id):
     conversion_string = f'''tensorflowjs_converter \
                             --input_format=tf_saved_model \
-                            --output_node_names='MobilenetV1/Predictions/Reshape_1' \
+                            --output_node_names='gesture-{model_id}/shape' \
                             --saved_model_tags=serve \
                             ./learners/model-{model_id} \
                             ./learners/model-{model_id}/web_model'''
@@ -84,6 +84,3 @@ def convert_to_tfjs(model_id):
         os.system(f'cmd /c {conversion_string}')
     else:
         os.system(conversion_string)
-
-
-train_new_model(3)
