@@ -1,4 +1,4 @@
-import { Button, IconButton, makeStyles, Paper, Tooltip, Typography } from '@material-ui/core';
+import { Button, Checkbox, IconButton, makeStyles, Paper, Tooltip, Typography } from '@material-ui/core';
 import InfoIcon from '@material-ui/icons/Info';
 import axios from 'axios';
 import React, { useEffect } from 'react';
@@ -59,6 +59,13 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
                         Add Gestures
                     </Button>
                 </Link>
+            </Paper>
+            <Paper className={classes.root} variant="outlined">
+                <Typography variant="h4">Loading the model</Typography>
+                <Typography variant="body1">Enable the model using the button below and the status of the ouput will be indicated on the checkboxes below.</Typography>
+                <Button color="primary" variant="contained"><Typography>Load Model</Typography></Button>
+                <Typography>Is Active <Checkbox disabled /></Typography>
+                <Typography>Triggered <Checkbox disabled /></Typography>
             </Paper>
         </div>
     );
