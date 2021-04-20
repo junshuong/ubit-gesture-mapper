@@ -50,9 +50,9 @@ function AudioStatus() {
         dryGain.connect(mainGainNode);
         wetGain.connect(mainGainNode);
 
-        const delayNode = createDelay(aCtx);
+        const effectNode = createDelay(aCtx);
 
-        delayNode.connect(wetGain);
+        effectNode.connect(wetGain);
 
         const osc1 = aCtx.createOscillator();
         // @ts-ignore
@@ -60,7 +60,7 @@ function AudioStatus() {
 
         osc1.frequency.value = freq1;
         osc1.type = 'sine';
-        osc1.connect(delayNode);
+        osc1.connect(effectNode);
         osc1.connect(dryGain);
 
         dryGain.gain.value = Math.cos(1.0 * 0.5 * Math.PI);
@@ -72,7 +72,7 @@ function AudioStatus() {
         aCtx.suspend();
 
         return function cleanup() {
-            osc1.disconnect(delayNode);
+            osc1.disconnect(effectNode);
             console.log('stop');
         };
         // eslint-disable-next-line

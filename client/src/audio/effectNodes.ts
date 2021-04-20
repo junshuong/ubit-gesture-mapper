@@ -78,3 +78,51 @@ export function createDelay(aCtx: any, delayTime: number = 1.0) {
 
     return delayNode;
 }
+
+export function createStereoFlange(audioContext: any, wetGain: any, speed: number = 0.15, delay: number = 0.003, depth: number = 0.005, feedback: number = 0.9) {
+    var splitter = audioContext.createChannelSplitter(2);
+    var merger = audioContext.createChannelMerger(2);
+    var inputNode = audioContext.createGain();
+    let sfllfb = audioContext.createGain();
+    let sflrfb = audioContext.createGain();
+    let sflspeed = audioContext.createOscillator();
+    let sflldepth = audioContext.createGain();
+    let sflrdepth = audioContext.createGain();
+    let sflldelay = audioContext.createDelay();
+    let sflrdelay = audioContext.createDelay();
+
+    sfllfb.gain.value = sflrfb.gain.value = feedback;
+
+    inputNode.connect(splitter);
+    inputNode.connect(wetGain);
+
+    sflldelay.delayTime.value = delay;
+    sflrdelay.delayTime.value = delay;
+
+    splitter.connect(sflldelay, 0);
+    splitter.connect(sflrdelay, 1);
+    sflldelay.connect(sfllfb);
+    sflrdelay.connect(sflrfb);
+    sfllfb.connect(sflrdelay);
+    sflrfb.connect(sflldelay);
+
+    sflldepth.gain.value = depth; // depth of change to the delay:
+    sflrdepth.gain.value = -depth; // depth of change to the delay:
+
+    sflspeed.type = 'triangle';
+    sflspeed.frequency.value = speed;
+
+    sflspeed.connect(sflldepth);
+    sflspeed.connect(sflrdepth);
+
+    sflldepth.connect(sflldelay.delayTime);
+    sflrdepth.connect(sflrdelay.delayTime);
+
+    sflldelay.connect(merger, 0, 0);
+    sflrdelay.connect(merger, 0, 1);
+    merger.connect(wetGain);
+
+    sflspeed.start(0);
+
+    return inputNode;
+}
