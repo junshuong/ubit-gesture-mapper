@@ -16,8 +16,8 @@ const useStyles = makeStyles((theme) => ({
   menuButton: {
     marginRight: theme.spacing(2),
   },
-  title: {
-    flexGrow: 1
+  grow: {
+    flexGrow: 1,
   },
   link: {
     color: "unset"
@@ -32,11 +32,11 @@ function App() {
         <RecordHeader />
         <Alert />
         <Switch>
-          <Route exact path="/recorder/:id" component={Recorder}/>
+          <Route exact path="/recorder/:id" component={Recorder} />
           <Route exact path="/models">
             <Models />
           </Route>
-          <Route exact path="/model/:id" component={Model}/>
+          <Route exact path="/model/:id" component={Model} />
           <Route path="/">
             <DataHeader />
             <MicrobitData />
@@ -52,9 +52,10 @@ function RecordHeader() {
   return (
     <AppBar position="static" className={classes.root}>
       <Toolbar>
-        <Typography variant="h6" className={classes.title}>
-          uBit Gesture Mapper
-          </Typography>
+        <Typography variant="h6">
+          μBit Gesture Mapper
+        </Typography>
+        <div className={classes.grow} ></div>
         <Link to="/" className={classes.link}>
           <Button color="inherit">
             Microbit
