@@ -3,6 +3,7 @@ from database import get_all_gestures, setup_database
 import random
 import numpy as np
 import os
+from platform import system
 
 setup_database()
 
@@ -88,4 +89,7 @@ conversion_string = f'''tensorflowjs_converter \
                         ./learners/model-{model_id} \
                         ./learners/model-{model_id}/web_model'''
 
-os.system(f'cmd /k {conversion_string}')
+if system() == 'Windows':
+    os.system(f'cmd /k {conversion_string}')
+else:
+    os.system(conversion_string)
