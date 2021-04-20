@@ -5,8 +5,6 @@ import numpy as np
 import os
 from platform import system
 
-#setup_database()
-
 def import_data(model_id):
     raw_data = get_all_gestures(model_id)
     records = {}

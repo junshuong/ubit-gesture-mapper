@@ -1,7 +1,10 @@
-from flask import Flask, request
+from flask import Flask, json, request
 from flask_cors import CORS
 from flask import jsonify
+from convert import train_new_model
 from database import *
+
+
 app = Flask(__name__)
 CORS(app)
 
@@ -39,3 +42,15 @@ def delete_model():
     model_id = request.get_json()["id"]
     delete_gesture_model(model_id)
     return jsonify(success=True)
+
+@app.route('/train_model', methods=['POST'])
+def train_model():
+    model_id = request.get_json()["id"]
+    train_new_model(model_id)
+    return jsonify(success=True)
+
+@app.route('/get_trained_model', methods=['POST'])
+def get_trained_model():
+    model_id = request.get_json()["id"]
+    f = open(f"./learners/model-{model_id}/webmodel/model.json")
+    return json.load(f)
