@@ -81,7 +81,7 @@ def convert_to_tfjs(model_id):
                             ./learners/model-{model_id}/web_model'''
 
     if system() == 'Windows':
-        os.system(f'cmd /k {conversion_string}')
+        os.system(f'cmd /c {conversion_string}')
     else:
         os.system(conversion_string)
 
