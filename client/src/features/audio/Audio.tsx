@@ -1,5 +1,5 @@
 import { Button, Card, CardContent, Typography, Slider, Grid } from '@material-ui/core';
-import { VolumeUp, VolumeDown, PlayArrow, Pause, PlayArrowTwoTone } from '@material-ui/icons';
+import { VolumeUp, VolumeDown, PlayArrow, Pause } from '@material-ui/icons';
 import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -112,20 +112,20 @@ function AudioStatus() {
         wetGainRef.current.gain.value = gain2;
     }
 
-    function PlayPauseButton(){
-      if (!isPlaying) {
-        return (
-          <Button variant="contained" color="primary" onClick={playPause}>
-              <PlayArrow /> Play
-          </Button>
-        )
-      }else{
-        return (
-          <Button variant="contained" color="primary" onClick={playPause}>
-              <Pause /> Pause
-          </Button>
-        )
-      }
+    function PlayPauseButton() {
+        if (!isPlaying) {
+            return (
+                <Button variant="contained" color="primary" onClick={playPause}>
+                    <PlayArrow /> Play
+                </Button>
+            )
+        } else {
+            return (
+                <Button variant="contained" color="primary" onClick={playPause}>
+                    <Pause /> Pause
+                </Button>
+            )
+        }
     }
 
     return (
@@ -137,7 +137,7 @@ function AudioStatus() {
                 </Typography>
 
                 <PlayPauseButton />
-                
+
                 <Typography variant="h6" component="p">
                     Frequency 1: {String(freq1)} Hz
                 </Typography>
@@ -145,13 +145,13 @@ function AudioStatus() {
                 <Typography variant="h6" component="p">
                     Effect Strength {String(Math.round(effectLevel * 100))}%
                 </Typography>
-                <Slider value={effectLevel} onChange={crossfade} min={0.0} max={1.0} step={0.01}/>
+                <Slider value={effectLevel} onChange={crossfade} min={0.0} max={1.0} step={0.01} />
                 <Grid container spacing={2}>
                     <Grid item>
                         <VolumeDown />
                     </Grid>
                     <Grid item xs>
-                        <Slider value={mainGain} onChange={volumeChange} min={0} max={0.4} step={0.025}/>
+                        <Slider value={mainGain} onChange={volumeChange} min={0} max={0.4} step={0.025} />
                     </Grid>
                     <Grid item>
                         <VolumeUp />
