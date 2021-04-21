@@ -8,6 +8,7 @@ import { Recorder } from './features/recorder/Recorder';
 import { Models } from './features/models/Models';
 import { connectMicrobitDevice, disconnectMicrobit } from './uBit/uBit';
 import { Model } from './features/models/Model';
+import { Audio } from './features/audio/Audio'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -36,7 +37,11 @@ function App() {
           <Route exact path="/models">
             <Models />
           </Route>
-          <Route exact path="/model/:id" component={Model} />
+          <Route exact path="/model/:id" component={Model}/>
+          {/* Temporary link fro development purposes */}
+          <Route exact path="/audio">
+            <Audio />
+          </Route>
           <Route path="/">
             <DataHeader />
             <MicrobitData />
@@ -64,6 +69,12 @@ function RecordHeader() {
         <Link to="/models" className={classes.link}>
           <Button color="inherit">
             Models
+          </Button>
+        </Link>
+        {/* Temporary link fro development purposes */}
+        <Link to="/audio" className={classes.link}>
+          <Button color="inherit">
+            Audio
           </Button>
         </Link>
       </Toolbar>

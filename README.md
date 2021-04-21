@@ -126,11 +126,15 @@ Enter the URL below in the address bar of your preferred browser to access the f
   - [ ] Handle conversion of realtime data to tensors to feed into the model.
   - [ ] Pass out the results to be used by other components.
 - [ ] Create a bunch of bad training data.
-- [ ] Audio component
+- [x] Audio component
   - [ ] Handle a number of different audio sounds/files
   - [ ] Play them according to the state of the currently active model.
 
 ---
+
+## Web Audio
+
+For details on the Web Audio implementation in this project, see [docs/audio.md](docs/audio.md)
 
 ## Contributions and Thanks
 
@@ -138,7 +142,9 @@ This project was developed by Internet of Things Applications class 2021 taught 
 
 Based and influenced by code from <https://github.com/WIT-IoT-Apps-2021/microbit-ble-vue>
 
-## All Contributors ([emoji key](https://allcontributors.org/docs/en/emoji-key))
+Web audio sound effect nodes based on https://github.com/cwilso/Audio-Input-Effects
+
+## All Contributors ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
