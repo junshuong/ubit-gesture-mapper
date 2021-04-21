@@ -3,7 +3,7 @@
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=for-the-badge)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=for-the-badge)](#all-contributors-emoji-key)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->

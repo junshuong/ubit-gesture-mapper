@@ -86,5 +86,5 @@
     }
   ],
   "contributorsPerLine": 5,
-  "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=for-the-badge)](#contributors)"
+  "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=for-the-badge)](#all-contributors-emoji-key)"
 }
