@@ -92,6 +92,10 @@ Note default ports of server and client are 5000 and 3000 respectively.
 
 ---
 
+## Web Audio
+
+For details on the Web Audio implementation in this project, see [docs/audio.md](docs/audio.md)
+
 ## Contributions and Thanks
 
 This project was developed by Internet of Things Applications class 2021 taught by Jason Berry.
