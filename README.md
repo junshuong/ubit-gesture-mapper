@@ -1,4 +1,4 @@
-# Ubit Gesture Mapper
+# μbit Gesture Mapper
 
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
@@ -9,9 +9,9 @@
 <!-- prettier-ignore-end -->
 
 [![micro:bit](https://img.shields.io/badge/micro%3Abit-v2-%2300ED00?style=for-the-badge&logo=micro:bit)](https://microbit.org/new-microbit/)
-[![Node](https://img.shields.io/badge/Node-v14+-339933?style=for-the-badge&logo=node.js)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/React-v17-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
-[![Redux](https://img.shields.io/badge/Redux-v7.2-764ABC?style=for-the-badge&logo=redux)](https://redux.js.org/)
+[![Node](https://img.shields.io/badge/Node-14+-339933?style=for-the-badge&logo=node.js)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-17-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
+[![Redux](https://img.shields.io/badge/Redux-7.2-764ABC?style=for-the-badge&logo=redux)](https://redux.js.org/)
 [![Python](https://img.shields.io/badge/Python-3.8-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2-FF6F00?style=for-the-badge&logo=TensorFlow)](https://www.tensorflow.org/)
 
@@ -31,7 +31,7 @@ npm i
 
 ### Server
 
-It is recommended to use a python virtual environment or similar to avoid all the dependancies being added system wide to your python install.
+It is recommended to use a python virtual environment or similar to avoid all the dependencies being added system wide to your python install.
 
 To do this on windows:
 
@@ -43,13 +43,13 @@ venv\Scripts\activate
 
 Note the script to activate the venv may be slightly different on other platforms.
 
-Then installing the dependancies once the virtual environment is active:
+Then installing the dependencies once the virtual environment is active:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-If you need to exit the virual environment run:
+If you need to exit the virtual environment run:
 
 ```bash
 venv\Scripts\deactivate
@@ -71,11 +71,11 @@ cd server
 flask run
 ```
 
-If your local machine has Bluetooth connectivity, you can connect to the app over `localhost` and do not need to use HTTPS/Ngrok. For example, if the client and sever are running on a laptop that has a Bluetooth adapter, you can connect the micro:bit to the app using the URL `http://localhost:3000`. If this is not possible, you must setup HTTPS or use Ngrok as descibed below.
+If your local machine has Bluetooth connectivity, you can connect to the app over `localhost` and do not need to use HTTPS/Ngrok. For example, if the client and sever are running on a laptop that has a Bluetooth adapter, you can connect the micro:bit to the app using the URL `http://localhost:3000`. If this is not possible, you must setup HTTPS or use Ngrok as described below.
 
 ### Ngrok
 
-If you need to connect to a micro:bit to any device other than localhsot, both the server and client need to be running behind Ngrok. Also the Ngrok URL for the server needs to be set in the configuration file found in `client/src/config.json`
+If you need to connect to a micro:bit to any device other than localhost, both the server and client need to be running behind Ngrok. Also the Ngrok URL for the server needs to be set in the configuration file found in `client/src/config.json`
 
 Install Ngrok:
 
@@ -83,12 +83,12 @@ Install Ngrok:
 npm install --global ngrok
 ```
 
-You may need to restart the termainl at this point if the `ngrok` comamnd is not available in the system path.
+You may need to restart the terminal at this point if the `ngrok` command is not available in the system path.
 
 Server:
 
 ```bash
-ngrok http -region=eu 3000
+ngrok http -region=eu 5000
 ```
 
 Don't forget to update the server URL in `client/src/config.json`.
@@ -96,7 +96,7 @@ Don't forget to update the server URL in `client/src/config.json`.
 Client:
 
 ```bash
-ngrok http -region=eu 5000
+ngrok http -region=eu 3000
 ```
 
 _Note:_ default ports of server and client are 5000 and 3000 respectively.
@@ -122,11 +122,11 @@ Enter the URL below in the address bar of your preferred browser to access the f
 - [ ] Encode models on the server to pass to the client.
   - [ ] Saving of models on the server.
 - [ ] Upgrade the models from their very simplistic current model.
-- [ ] Add tensorflow js to the client and create a component to work with it. Ez.
+- [ ] Add TensorFlow JS to the client and create a component to work with it. Ez.
   - [ ] Handle conversion of realtime data to tensors to feed into the model.
   - [ ] Pass out the results to be used by other components.
 - [ ] Create a bunch of bad training data.
-- [x] Audio component
+- [ ] Audio component
   - [ ] Handle a number of different audio sounds/files
   - [ ] Play them according to the state of the currently active model.
 
@@ -136,11 +136,9 @@ Enter the URL below in the address bar of your preferred browser to access the f
 
 This project was developed by Internet of Things Applications class 2021 taught by Jason Berry.
 
-Based and influenced by code from https://github.com/WIT-IoT-Apps-2021/microbit-ble-vue
+Based and influenced by code from <https://github.com/WIT-IoT-Apps-2021/microbit-ble-vue>
 
-Web audio sound effect nodes based on https://github.com/cwilso/Audio-Input-Effects
-
-## All Contributors ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+## All Contributors ([emoji key](https://allcontributors.org/docs/en/emoji-key))
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
