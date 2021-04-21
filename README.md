@@ -1,19 +1,24 @@
-# Ubit Gesture Mapper
+# μbit Gesture Mapper
 
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=for-the-badge)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=for-the-badge)](#all-contributors-emoji-key)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
 
 [![micro:bit](https://img.shields.io/badge/micro%3Abit-v2-%2300ED00?style=for-the-badge&logo=micro:bit)](https://microbit.org/new-microbit/)
-[![Node](https://img.shields.io/badge/Node-v14+-339933?style=for-the-badge&logo=node.js)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/React-v17-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
-[![Redux](https://img.shields.io/badge/Redux-v7.2-764ABC?style=for-the-badge&logo=redux)](https://redux.js.org/)
-[![Python](https://img.shields.io/badge/Python-3-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
+[![Node](https://img.shields.io/badge/Node-14+-339933?style=for-the-badge&logo=node.js)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-17-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
+[![Redux](https://img.shields.io/badge/Redux-7.2-764ABC?style=for-the-badge&logo=redux)](https://redux.js.org/)
+[![Python](https://img.shields.io/badge/Python-3.8-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2-FF6F00?style=for-the-badge&logo=TensorFlow)](https://www.tensorflow.org/)
+
+## Requirements
+
+- NodeJS v14+
+- Python 3.8 (Python 3.9+ is currently not supported by TensorFlow)
 
 ## Installing
 
@@ -26,7 +31,7 @@ npm i
 
 ### Server
 
-It is recommended to use a python virtual environment or similar to avoid all the dependancies being added system wide to your python install.
+It is recommended to use a python virtual environment or similar to avoid all the dependencies being added system wide to your python install.
 
 To do this on windows:
 
@@ -38,11 +43,19 @@ venv\Scripts\activate
 
 Note the script to activate the venv may be slightly different on other platforms.
 
-Then installing the dependancies once the virtual environment is active:
+Then installing the dependencies once the virtual environment is active:
 
 ```bash
 pip install -r requirements.txt
 ```
+
+If you need to exit the virtual environment run:
+
+```bash
+venv\Scripts\deactivate
+```
+
+from the server directory.
 
 ## Running
 
@@ -58,19 +71,46 @@ cd server
 flask run
 ```
 
+If your local machine has Bluetooth connectivity, you can connect to the app over `localhost` and do not need to use HTTPS/Ngrok. For example, if the client and sever are running on a laptop that has a Bluetooth adapter, you can connect the micro:bit to the app using the URL `http://localhost:3000`. If this is not possible, you must setup HTTPS or use Ngrok as described below.
+
 ### Ngrok
 
-Both the server and the client need to be ngrokked. Also the ngrokked url for the server needs to be set in the configuration file found in client/src/config.json
+If you need to connect to a micro:bit to any device other than localhost, both the server and client need to be running behind Ngrok. Also the Ngrok URL for the server needs to be set in the configuration file found in `client/src/config.json`
+
+Install Ngrok:
 
 ```bash
 npm install --global ngrok
 ```
 
+You may need to restart the terminal at this point if the `ngrok` command is not available in the system path.
+
+Server:
+
+```bash
+ngrok http -region=eu 5000
+```
+
+Don't forget to update the server URL in `client/src/config.json`.
+
+Client:
+
 ```bash
 ngrok http -region=eu 3000
 ```
 
-Note default ports of server and client are 5000 and 3000 respectively.
+_Note:_ default ports of server and client are 5000 and 3000 respectively.
+
+### Connecting the micro:bit to a desktop/laptop
+
+You may have to enable a flag in the browser to allow Web Bluetooth connections on desktop. To do this go to the flags page, enable the `Experimental Web Platform Features` flag and re-launch the browser.
+
+#### Browser Flags (Experiments) Page Locations
+
+Enter the URL below in the address bar of your preferred browser to access the flags (Experiments) page
+
+- Google Chrome/Chromium: `chrome://flags/#enable-experimental-web-platform-features`
+- Microsoft Edge: `edge://flags/#enable-experimental-web-platform-features`
 
 ## Garbage that needs to be done
 
@@ -82,7 +122,7 @@ Note default ports of server and client are 5000 and 3000 respectively.
 - [ ] Encode models on the server to pass to the client.
   - [ ] Saving of models on the server.
 - [ ] Upgrade the models from their very simplistic current model.
-- [ ] Add tensorflow js to the client and create a component to work with it. Ez.
+- [ ] Add TensorFlow JS to the client and create a component to work with it. Ez.
   - [ ] Handle conversion of realtime data to tensors to feed into the model.
   - [ ] Pass out the results to be used by other components.
 - [ ] Create a bunch of bad training data.
@@ -100,7 +140,7 @@ For details on the Web Audio implementation in this project, see [docs/audio.md]
 
 This project was developed by Internet of Things Applications class 2021 taught by Jason Berry.
 
-Based and influenced by code from https://github.com/WIT-IoT-Apps-2021/microbit-ble-vue
+Based and influenced by code from <https://github.com/WIT-IoT-Apps-2021/microbit-ble-vue>
 
 Web audio sound effect nodes based on https://github.com/cwilso/Audio-Input-Effects
 
