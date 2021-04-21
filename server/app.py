@@ -1,4 +1,5 @@
 from flask import Flask, json, request
+from flask.helpers import send_file
 from flask_cors import CORS
 from flask import jsonify
 from convert import train_new_model
@@ -54,3 +55,7 @@ def get_trained_model():
     model_id = request.get_json()["id"]
     f = open(f"./learners/model-{model_id}/web_model/model.json")
     return json.load(f)
+
+@app.route('/get_model_part/<id>/<file>', methods=['GET'])
+def get_model_part(id, file):
+    return send_file(f"./learners/model-{id}/web_model/{file}")
