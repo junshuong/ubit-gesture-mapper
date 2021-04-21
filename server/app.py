@@ -52,5 +52,5 @@ def train_model():
 @app.route('/get_trained_model', methods=['POST'])
 def get_trained_model():
     model_id = request.get_json()["id"]
-    f = open(f"./learners/model-{model_id}/webmodel/model.json")
+    f = open(f"./learners/model-{model_id}/web_model/model.json")
     return json.load(f)
