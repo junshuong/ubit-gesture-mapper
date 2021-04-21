@@ -2,12 +2,14 @@ import { Button, Checkbox, IconButton, makeStyles, Paper, Tooltip, Typography } 
 import InfoIcon from '@material-ui/icons/Info';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { store } from '../../app/store';
 import cfg from '../../config.json';
 import { activate, selectActiveModel, setActiveModel } from './activeModelSlice';
 import * as tf from '@tensorflow/tfjs';
+import { setIsPlaying } from '../audio/audioSlice';
+import { Audio } from '../audio/Audio';
 
 const useStyles = makeStyles({
     root: {
@@ -75,6 +77,7 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
                 <Typography>Is Active <Checkbox disabled checked={activeModel.isActive} /></Typography>
                 <ModelOutput weightMap={weightMap}/>
             </Paper>
+            <Audio/>
         </div>
     );
 }
@@ -89,6 +92,7 @@ async function loadModel(id: number) {
 
 function ModelOutput(props: { weightMap: {} }) {
     const activeModel = useSelector(selectActiveModel);
+    const dispatch = useDispatch();
 
     const [on, setOn] = useState(0);
     const [off, setOff] = useState(0);
@@ -107,9 +111,16 @@ function ModelOutput(props: { weightMap: {} }) {
             setOff(output[1]);
         })
     }
+
+    const triggerAudio = () => {
+        const trigger = on > off;
+        dispatch(setIsPlaying([trigger]));
+        return trigger;
+    }
+
     return(
         <div>
-            <Typography>Triggered <Checkbox disabled checked={on > off} /></Typography>
+            <Typography>Triggered <Checkbox disabled checked={triggerAudio()} /></Typography>
             <div>On</div>
             <div>{on}</div>
             <div>Off</div>
