@@ -1,6 +1,7 @@
 import { store } from '../app/store';
 import { setAlert } from '../features/alert/alertSlice';
 import { connect, disconnect, setAccelerometerData, setButtonAState, setButtonBState, setMagnetometerData, setTemperature } from '../features/microbit/microbitSlice';
+import { setGestureHistory } from '../features/models/activeModelSlice';
 import services from './services.json';
 
 const enabledServices: BluetoothServiceUUID[] = [
@@ -173,6 +174,7 @@ function accelerometerDataChanged(event: any) {
     let y = event.target.value.getInt16(2, true);
     let z = event.target.value.getInt16(4, true);
     store.dispatch(setAccelerometerData({ x: x, y: y, z: z }));
+    store.dispatch(setGestureHistory({ x: x, y: y, z: z }));
 }
 
 function magnetometerDataChanged(event: any) {

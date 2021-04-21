@@ -5,9 +5,6 @@ import numpy as np
 import os
 from platform import system
 
-setup_database()
-
-# Importing data
 def import_data(model_id):
     raw_data = get_all_gestures(model_id)
     records = {}
@@ -47,16 +44,7 @@ def all_training_samples(data):
         target_tensors.append(target_tensor)
     return input_tensors, target_tensors
 
-model_id = 3
-
-training_data = import_data(model_id)
-
-tensor = sample_to_tensor(random_training_sample(training_data))
-
-input_shape = (1, 120)
-classifier_count = 2
-
-def create_model():
+def create_model(input_shape, classifier_count):
     model = tf.keras.Sequential([
         tf.keras.layers.Flatten(input_shape=input_shape),
         tf.keras.layers.Dense(128, activation='relu'),
@@ -69,27 +57,28 @@ def create_model():
         
     return model
 
-model = create_model()
+def train_new_model(model_id):
+    input_shape = (1, 120)
+    classifier_count = 2
+    model = create_model(input_shape, classifier_count)
+    training_data = import_data(model_id)
+    input_tensors, target_tensors = all_training_samples(training_data)
+    train_x = tf.concat(input_tensors, 0)
+    train_y = tf.concat(target_tensors, 0)
+    model.fit(train_x, train_y, epochs=20)
+    model.save_weights(f"./checkpoints/model-{model_id}")
+    tf.saved_model.save(model, f"./learners/model-{model_id}") 
+    convert_to_tfjs(model_id) 
 
-input_tensors, target_tensors = all_training_samples(training_data)
+def convert_to_tfjs(model_id):
+    conversion_string = f'''tensorflowjs_converter \
+                            --input_format=tf_saved_model \
+                            --output_node_names='gesture-{model_id}/shape' \
+                            --saved_model_tags=serve \
+                            ./learners/model-{model_id} \
+                            ./learners/model-{model_id}/web_model'''
 
-train_x = tf.concat(input_tensors, 0)
-train_y = tf.concat(target_tensors, 0)
-
-model.fit(train_x, train_y, epochs=14)
-
-model.save_weights(f"./checkpoints/model-{model_id}")
-tf.saved_model.save(model, f"./learners/model-{model_id}")
-
-
-conversion_string = f'''tensorflowjs_converter \
-                        --input_format=tf_saved_model \
-                        --output_node_names='MobilenetV1/Predictions/Reshape_1' \
-                        --saved_model_tags=serve \
-                        ./learners/model-{model_id} \
-                        ./learners/model-{model_id}/web_model'''
-
-if system() == 'Windows':
-    os.system(f'cmd /k {conversion_string}')
-else:
-    os.system(conversion_string)
+    if system() == 'Windows':
+        os.system(f'cmd /c {conversion_string}')
+    else:
+        os.system(conversion_string)

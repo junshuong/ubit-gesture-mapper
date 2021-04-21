@@ -112,6 +112,16 @@ function AudioStatus() {
         wetGainRef.current.gain.value = gain2;
     }
 
+    useEffect(() => {
+        if (isPlaying) {
+            // @ts-ignore
+            audioContextRef.current.resume();
+        } else {
+            // @ts-ignore
+            audioContextRef.current.suspend();
+        }
+    }, [isPlaying])
+
     function PlayPauseButton() {
         if (!isPlaying) {
             return (

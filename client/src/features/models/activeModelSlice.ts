@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { RootState } from "../../app/store";
-
+import { AccelerometerState } from "../microbit/microbitSlice";
 
 interface GestureState {
     id: number,
@@ -19,7 +19,10 @@ export interface ActiveModelState {
     name: string,
     gestures: GestureState[],
     tickCount: number,
-    description: string
+    description: string,
+    isActive: boolean,
+    triggered: boolean,
+    history: AccelerometerState[]
 }
 
 const initialState: ActiveModelState = {
@@ -27,7 +30,10 @@ const initialState: ActiveModelState = {
     name: "",
     gestures: [],
     tickCount: 0,
-    description: ""
+    description: "",
+    isActive: false,
+    triggered: false,
+    history: []
 }
 
 export const activeModelSlice = createSlice({
@@ -40,16 +46,35 @@ export const activeModelSlice = createSlice({
             state.description = action.payload.description;
             state.tickCount = action.payload.tickCount;
             state.gestures = action.payload.gestures;
+        },
+        activate: state => {
+            state.isActive = true;
+        },
+        deactivate: state => {
+            state.isActive = false;
+        },
+        trigger: (state, action: PayloadAction<boolean>) => {
+            state.triggered = action.payload;
+        },
+        setGestureHistory: (state, action: PayloadAction<AccelerometerState>) => {
+            if (state.isActive) {
+                if (state.history.length <= state.tickCount && state.tickCount > 0) {
+                    state.history.push(action.payload);
+                }
+                if (state.history.length > state.tickCount) {
+                    state.history.shift();
+                }
+            }
         }
     }
-})
+});
 
 export const selectActiveModel = (state: RootState) => {
     return state.activeModel;
 };
 export const selectActiveModelName = (state: RootState) => state.activeModel.name;
 
-export const { setActiveModel } = activeModelSlice.actions;
+export const { setGestureHistory, setActiveModel, activate, deactivate, trigger } = activeModelSlice.actions;
 
 export default activeModelSlice.reducer;
 
