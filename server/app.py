@@ -18,6 +18,7 @@ def gesture():
     model_id = json_data["model_id"]
     data = json_data["data"]
     add_gesture(checked, data, model_id)
+    train_new_model(model_id)
     return jsonify(success=True)
 
 @app.route('/create_model', methods=['POST'])
