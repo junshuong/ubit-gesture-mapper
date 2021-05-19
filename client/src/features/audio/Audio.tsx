@@ -1,10 +1,9 @@
-import { Button, Card, CardContent, Typography, Slider, Grid } from '@material-ui/core';
-import { VolumeUp, VolumeDown, PlayArrow, Pause } from '@material-ui/icons';
+import { Button, Card, CardContent, Grid, Slider, Typography } from '@material-ui/core';
+import { Pause, PlayArrow, VolumeDown, VolumeUp } from '@material-ui/icons';
 import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-
 import { createDelay } from '../../audio/effectNodes';
-import { selectIsPlaying, selectMainGain, setMainGain, toggleIsPlaying, setFreq1, selectFreq1, selectEffectLevel, setEffectLevel } from './audioSlice';
+import { selectEffectLevel, selectFreq1, selectIsPlaying, selectMainGain, setEffectLevel, setFreq1, setMainGain, toggleIsPlaying } from './audioSlice';
 
 export function Audio(props: any) {
     return (

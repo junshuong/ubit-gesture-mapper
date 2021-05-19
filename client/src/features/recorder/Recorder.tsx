@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { store } from '../../app/store';
 import cfg from '../../config.json';
-import { AccelerometerState, clearHistory, selectHistory, setTicks } from '../microbit/microbitSlice';
+import { AccelerometerState, clearHistory, MagnetometerState, setTicks, selectHistory, ActiveHistoryState } from '../microbit/microbitSlice';
 import { selectActiveModel } from '../models/activeModelSlice';
 import { fetchModel } from '../models/Model';
 
@@ -104,6 +104,38 @@ function DataChart() {
   const historySplit = splitHistory(history);
   const classes = useStyles();
 
+  function splitHistory(data: ActiveHistoryState, recursed: number = 0) {
+    var indexs: number[] = [];
+    var axs: number[] = [];
+    var ays: number[] = [];
+    var azs: number[] = [];
+    var mxs: number[] = [];
+    var mys: number[] = [];
+    var mzs: number[] = [];
+    var i: number = 0;
+
+    let accel = data.accelerometerHistory;
+
+    if (accel.length !== data.magnetometerHistory.length) {
+      if (accel.length < 1) {
+        accel = []
+      } else {
+        accel = accel.slice(1, accel.length-1);
+      }
+    }
+  
+    for (i = 0; i < accel.length; i++) {
+      indexs.push(i);
+      axs.push(accel[i].x);
+      ays.push(accel[i].y);
+      azs.push(accel[i].z);
+      mxs.push(data.magnetometerHistory[i].x);
+      mys.push(data.magnetometerHistory[i].y);
+      mzs.push(data.magnetometerHistory[i].z);
+    }
+    return { indexs: indexs, axs: axs, ays: ays, azs: azs, mxs: mxs, mys: mys, mzs: mzs }
+  }
+
   return (
     <CChart
       className={classes.root}
@@ -118,7 +150,7 @@ function DataChart() {
           pointHoverBackgroundColor: '#fff',
           pointHoverBorderColor: 'rgba(179,181,198,1)',
           tooltipLabelColor: 'rgba(179,181,198,1)',
-          data: historySplit.xs
+          data: historySplit.axs
         },
         {
           label: 'Accelerometer Y',
@@ -129,7 +161,7 @@ function DataChart() {
           pointHoverBackgroundColor: '#fff',
           pointHoverBorderColor: 'rgba(255,99,132,1)',
           tooltipLabelColor: 'rgba(255,99,132,1)',
-          data: historySplit.ys
+          data: historySplit.ays
         },
         {
           label: 'Accelerometer Z',
@@ -140,7 +172,40 @@ function DataChart() {
           pointHoverBackgroundColor: '#fff',
           pointHoverBorderColor: 'rgba(179,181,255,1)',
           tooltipLabelColor: 'rgba(179,181,255,1)',
-          data: historySplit.zs
+          data: historySplit.azs
+        },
+        {
+          label: 'Magnetometer X',
+          backgroundColor: 'rgba(179,181,198,0.2)',
+          borderColor: 'rgba(179,181,198,1)',
+          pointBackgroundColor: 'rgba(179,181,198,1)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgba(179,181,198,1)',
+          tooltipLabelColor: 'rgba(179,181,198,1)',
+          data: historySplit.mxs
+        },
+        {
+          label: 'Magnetometer Y',
+          backgroundColor: 'rgba(255,99,132,0.2)',
+          borderColor: 'rgba(255,99,132,1)',
+          pointBackgroundColor: 'rgba(255,99,132,1)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgba(255,99,132,1)',
+          tooltipLabelColor: 'rgba(255,99,132,1)',
+          data: historySplit.mys
+        },
+        {
+          label: 'Magnetometer Z',
+          backgroundColor: 'rgba(179,181,255,0.2)',
+          borderColor: 'rgba(179,181,255,1)',
+          pointBackgroundColor: 'rgba(179,181,255,1)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgba(179,181,255,1)',
+          tooltipLabelColor: 'rgba(179,181,255,1)',
+          data: historySplit.mzs
         }
       ]}
       options={{
@@ -173,11 +238,13 @@ const CleanSlider = withStyles({
 /**
  * Posts a gesture to the server.
  */
-function postGesture(checked: boolean, data: AccelerometerState[], frames: number, lastFrame: number, model_id: number) {
-  data = data.slice(lastFrame - frames, lastFrame);
+function postGesture(checked: boolean, data: ActiveHistoryState, frames: number, lastFrame: number, model_id: number) {
+  let acclerometerData: AccelerometerState[] = data.accelerometerHistory.slice(lastFrame - frames, lastFrame);
+  let magnetometerData: MagnetometerState[] = data.accelerometerHistory.slice(lastFrame - frames, lastFrame);
   let payload = {
     checked: checked,
-    data: data,
+    acclerometerData: acclerometerData,
+    magnetometerData: magnetometerData,
     model_id: model_id
   }
 
@@ -194,18 +261,3 @@ function recordTicks(ticks: number, countdown: number) {
   }, countdown * 1000)
 }
 
-function splitHistory(history: AccelerometerState[]) {
-  var indexs: number[] = [];
-  var xs: number[] = [];
-  var ys: number[] = [];
-  var zs: number[] = [];
-  var i: number = 0;
-  history.forEach(el => {
-    indexs.push(i);
-    xs.push(el.x);
-    ys.push(el.y);
-    zs.push(el.z);
-    i++;
-  });
-  return { indexs: indexs, xs: xs, ys: ys, zs: zs }
-}

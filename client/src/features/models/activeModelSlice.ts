@@ -14,6 +14,11 @@ interface DataTickState {
     z: number
 }
 
+export interface HistoryState {
+    accelerometer: AccelerometerState[],
+    magnetometer: MagnetometerState[],
+}
+
 export interface ActiveModelState {
     id: number,
     name: string,
@@ -91,6 +96,7 @@ export const selectActiveModel = (state: RootState) => {
     return state.activeModel;
 };
 export const selectActiveModelName = (state: RootState) => state.activeModel.name;
+export const selectHistory = (state: RootState) => state.activeModel.history;
 
 export const { setAccelerometerGestureHistory, setMangetometerGestureHistory,setActiveModel, activate, deactivate, trigger } = activeModelSlice.actions;
 

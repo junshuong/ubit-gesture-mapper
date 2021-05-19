@@ -13,13 +13,18 @@ export interface MagnetometerState {
     z: number
 }
 
+export interface ActiveHistoryState {
+    accelerometerHistory : AccelerometerState[],
+    magnetometerHistory: MagnetometerState[],
+}
+
 interface MicrobitState {
     id: string,
     connected: boolean,
     ticks: number,
     completedTicks: number,
     accelerometer: AccelerometerState,
-    acclerometerHistory: AccelerometerState[],
+    history: ActiveHistoryState,
     button: {
         a: number,
         b: number
@@ -46,7 +51,10 @@ const initialState: MicrobitState = {
         y: 0,
         z: 0
     },
-    acclerometerHistory: [],
+    history: {
+        accelerometerHistory: [],
+        magnetometerHistory: [],
+    },
     button: {
         a: 0,
         b: 0
@@ -78,7 +86,8 @@ export const microbitSlice = createSlice({
             state.accelerometer.y = action.payload.y;
             state.accelerometer.z = action.payload.z;
             if (state.ticks > 0 && state.completedTicks < state.ticks) {
-                state.acclerometerHistory.push({ x: action.payload.x, y: action.payload.y, z: action.payload.z });
+                state.history.accelerometerHistory.push({ x: action.payload.x, y: action.payload.y, z: action.payload.z });
+                console.log("There was accel change");
                 state.completedTicks = state.completedTicks + 1;
             }
         },
@@ -95,6 +104,11 @@ export const microbitSlice = createSlice({
             state.magnetometer.data.x = action.payload.x;
             state.magnetometer.data.y = action.payload.y;
             state.magnetometer.data.z = action.payload.z;
+            if (state.ticks > 0 && state.completedTicks < state.ticks) {
+                state.history.magnetometerHistory.push({ x: action.payload.x, y: action.payload.y, z: action.payload.z });
+                console.log("There was magnet change");
+                state.completedTicks = state.completedTicks + 1;
+            }
         },
         setMagnetometerBearing: (state, action: PayloadAction<number>) => {
             state.magnetometer.bearing = action.payload;
@@ -103,22 +117,25 @@ export const microbitSlice = createSlice({
             state.magnetometer.calibration = action.payload;
         },
         clearHistory: (state) => {
-            state.acclerometerHistory = [];
+            state.history.accelerometerHistory = [];
+            state.history.magnetometerHistory = [];
             state.completedTicks = 0;
         },
         setTicks: (state, action: PayloadAction<number>) => {
+            console.log("Setting ticks");
             state.ticks = action.payload;
         }
     },
 });
 
 export const selectAccelerometerData = (state: RootState) => state.microbit.accelerometer;
+
 export const selectButtonData = (state: RootState) => state.microbit.button;
 export const selectTemperature = (state: RootState) => state.microbit.temperature;
 export const selectMagnetometerData = (state: RootState) => state.microbit.magnetometer.data;
 export const selectMagnetometerBearing = (state: RootState) => state.microbit.magnetometer.bearing;
 export const selectMagnetometerCalibration = (state: RootState) => state.microbit.magnetometer.calibration;
-export const selectHistory = (state: RootState) => state.microbit.acclerometerHistory;
+export const selectHistory = (state: RootState) => state.microbit.history;
 
 
 export const selectConnected = (state: RootState) => state.microbit.connected;
