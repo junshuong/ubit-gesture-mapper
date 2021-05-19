@@ -57,7 +57,7 @@ export function Recorder(props: { match: { params: { id: any } }, history: strin
       fetchModel(id);
     } else {
       setTicks(activeModel.tickCount);
-      setFrames(activeModel.tickCount);
+      setFrames(activeModel.tickCount); 
     }
   }, [activeModel.name, activeModel.tickCount, id])
 
@@ -116,6 +116,7 @@ function DataChart() {
 
     let accel = data.accelerometerHistory;
 
+    // Dirty accounting for inconsistency in tick times
     if (accel.length !== data.magnetometerHistory.length) {
       if (accel.length < 1) {
         accel = []
@@ -129,9 +130,9 @@ function DataChart() {
       axs.push(accel[i].x);
       ays.push(accel[i].y);
       azs.push(accel[i].z);
-      mxs.push(data.magnetometerHistory[i].x);
-      mys.push(data.magnetometerHistory[i].y);
-      mzs.push(data.magnetometerHistory[i].z);
+      mxs.push(data.magnetometerHistory[i].x/20);
+      mys.push(data.magnetometerHistory[i].y/20);
+      mzs.push(data.magnetometerHistory[i].z/20);
     }
     return { indexs: indexs, axs: axs, ays: ays, azs: azs, mxs: mxs, mys: mys, mzs: mzs }
   }
@@ -143,24 +144,24 @@ function DataChart() {
       datasets={[
         {
           label: 'Accelerometer X',
-          backgroundColor: 'rgba(179,181,198,0.2)',
-          borderColor: 'rgba(179,181,198,1)',
-          pointBackgroundColor: 'rgba(179,181,198,1)',
+          backgroundColor: 'rgba(68,69,69,0.2)',
+          borderColor: 'rgba(68,69,69,1)',
+          pointBackgroundColor: 'rgba(68,69,69,1)',
           pointBorderColor: '#fff',
           pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: 'rgba(179,181,198,1)',
-          tooltipLabelColor: 'rgba(179,181,198,1)',
+          pointHoverBorderColor: 'rgba(68,69,69,1)',
+          tooltipLabelColor: 'rgba(68,69,69,1)',
           data: historySplit.axs
         },
         {
           label: 'Accelerometer Y',
-          backgroundColor: 'rgba(255,99,132,0.2)',
-          borderColor: 'rgba(255,99,132,1)',
-          pointBackgroundColor: 'rgba(255,99,132,1)',
+          backgroundColor: 'rgba(181,255,233,0.2)',
+          borderColor: 'rgba(181,255,233,1)',
+          pointBackgroundColor: 'rgba(181,255,233,1)',
           pointBorderColor: '#fff',
           pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: 'rgba(255,99,132,1)',
-          tooltipLabelColor: 'rgba(255,99,132,1)',
+          pointHoverBorderColor: 'rgba(181,255,233,1)',
+          tooltipLabelColor: 'rgba(181,255,233,1)',
           data: historySplit.ays
         },
         {
@@ -176,35 +177,35 @@ function DataChart() {
         },
         {
           label: 'Magnetometer X',
-          backgroundColor: 'rgba(179,181,198,0.2)',
-          borderColor: 'rgba(179,181,198,1)',
-          pointBackgroundColor: 'rgba(179,181,198,1)',
+          backgroundColor: 'rgba(125,130,184,0.2)',
+          borderColor: 'rgba(125,130,184,1)',
+          pointBackgroundColor: 'rgba(125,130,184,1)',
           pointBorderColor: '#fff',
           pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: 'rgba(179,181,198,1)',
-          tooltipLabelColor: 'rgba(179,181,198,1)',
+          pointHoverBorderColor: 'rgba(125,130,184,1)',
+          tooltipLabelColor: 'rgba(125,130,184,1)',
           data: historySplit.mxs
         },
         {
           label: 'Magnetometer Y',
-          backgroundColor: 'rgba(255,99,132,0.2)',
-          borderColor: 'rgba(255,99,132,1)',
-          pointBackgroundColor: 'rgba(255,99,132,1)',
+          backgroundColor: 'rgba(229,195,209,0.2)',
+          borderColor: 'rgba(229,195,209,1)',
+          pointBackgroundColor: 'rgba(229,195,209,1)',
           pointBorderColor: '#fff',
           pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: 'rgba(255,99,132,1)',
-          tooltipLabelColor: 'rgba(255,99,132,1)',
+          pointHoverBorderColor: 'rgba(229,195,209,1)',
+          tooltipLabelColor: 'rgba(229,195,209,1)',
           data: historySplit.mys
         },
         {
           label: 'Magnetometer Z',
-          backgroundColor: 'rgba(179,181,255,0.2)',
-          borderColor: 'rgba(179,181,255,1)',
-          pointBackgroundColor: 'rgba(179,181,255,1)',
+          backgroundColor: 'rgba(97,63,117,0.2)',
+          borderColor: 'rgba(97,63,117,1)',
+          pointBackgroundColor: 'rgba(97,63,117,1)',
           pointBorderColor: '#fff',
           pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: 'rgba(179,181,255,1)',
-          tooltipLabelColor: 'rgba(179,181,255,1)',
+          pointHoverBorderColor: 'rgba(97,63,117,1)',
+          tooltipLabelColor: 'rgba(97,63,117,1)',
           data: historySplit.mzs
         }
       ]}
