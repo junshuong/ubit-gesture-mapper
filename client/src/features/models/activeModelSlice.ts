@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { RootState } from "../../app/store";
-import { AccelerometerState } from "../microbit/microbitSlice";
+import { AccelerometerState, MagnetometerState } from "../microbit/microbitSlice";
 
 interface GestureState {
     id: number,
@@ -22,7 +22,10 @@ export interface ActiveModelState {
     description: string,
     isActive: boolean,
     triggered: boolean,
-    history: AccelerometerState[]
+    history: {
+        accelerometer: AccelerometerState[],
+        magnetometer: MagnetometerState[],
+    }
 }
 
 const initialState: ActiveModelState = {
@@ -33,7 +36,10 @@ const initialState: ActiveModelState = {
     description: "",
     isActive: false,
     triggered: false,
-    history: []
+    history: {
+        accelerometer: [],
+        magnetometer: []
+    }
 }
 
 export const activeModelSlice = createSlice({
@@ -56,13 +62,25 @@ export const activeModelSlice = createSlice({
         trigger: (state, action: PayloadAction<boolean>) => {
             state.triggered = action.payload;
         },
-        setGestureHistory: (state, action: PayloadAction<AccelerometerState>) => {
+        setAccelerometerGestureHistory: (state, action: PayloadAction<AccelerometerState>) => {
             if (state.isActive) {
-                if (state.history.length <= state.tickCount && state.tickCount > 0) {
-                    state.history.push(action.payload);
+                let l: number = state.history.accelerometer.length;
+                if (l <= state.tickCount && state.tickCount > 0) {
+                    state.history.accelerometer.push(action.payload);
                 }
-                if (state.history.length > state.tickCount) {
-                    state.history.shift();
+                if (l > state.tickCount) {
+                    state.history.accelerometer.shift();
+                }
+            }
+        },
+        setMangetometerGestureHistory: (state, action: PayloadAction<MagnetometerState>) => {
+            if (state.isActive) {
+                let l: number = state.history.magnetometer.length;
+                if (l <= state.tickCount && state.tickCount > 0) {
+                    state.history.magnetometer.push(action.payload);
+                }
+                if (l > state.tickCount) {
+                    state.history.magnetometer.shift();
                 }
             }
         }
@@ -74,7 +92,7 @@ export const selectActiveModel = (state: RootState) => {
 };
 export const selectActiveModelName = (state: RootState) => state.activeModel.name;
 
-export const { setGestureHistory, setActiveModel, activate, deactivate, trigger } = activeModelSlice.actions;
+export const { setAccelerometerGestureHistory, setMangetometerGestureHistory,setActiveModel, activate, deactivate, trigger } = activeModelSlice.actions;
 
 export default activeModelSlice.reducer;
 

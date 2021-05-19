@@ -7,6 +7,12 @@ export interface AccelerometerState {
     z: number
 }
 
+export interface MagnetometerState {
+    x: number,
+    y: number,
+    z: number
+}
+
 interface MicrobitState {
     id: string,
     connected: boolean,
