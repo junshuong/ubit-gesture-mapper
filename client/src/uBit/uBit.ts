@@ -1,5 +1,6 @@
 import { store } from '../app/store';
 import { setAlert } from '../features/alert/alertSlice';
+import { setIsPlaying } from '../features/audio/audioSlice';
 import { connect, disconnect, setAccelerometerData, setButtonAState, setButtonBState, setMagnetometerData, setTemperature } from '../features/microbit/microbitSlice';
 import { setGestureHistory } from '../features/models/activeModelSlice';
 import services from './services.json';
@@ -173,8 +174,21 @@ function accelerometerDataChanged(event: any) {
     let x = event.target.value.getInt16(0, true);
     let y = event.target.value.getInt16(2, true);
     let z = event.target.value.getInt16(4, true);
+
+    let threshold: number = 800;
+    if (x >= threshold) {
+        store.dispatch(setIsPlaying([true]));
+    }
+    if (store.getState().audio.isPlaying) {
+        if (x < threshold) {
+            store.dispatch(setIsPlaying([false]));
+        }
+    }
+
+
     store.dispatch(setAccelerometerData({ x: x, y: y, z: z }));
     store.dispatch(setGestureHistory({ x: x, y: y, z: z }));
+
 }
 
 function magnetometerDataChanged(event: any) {
