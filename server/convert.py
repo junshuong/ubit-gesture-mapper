@@ -1,9 +1,12 @@
-import tensorflow as tf
-from database import get_all_gestures, setup_database
-import random
-import numpy as np
 import os
+import random
 from platform import system
+
+import numpy as np
+import tensorflow as tf
+
+from database import get_all_gestures, setup_database
+
 
 def import_data(model_id):
     raw_data = get_all_gestures(model_id)

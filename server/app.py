@@ -1,12 +1,13 @@
-from flask import Flask, json, request
+import logging
+
+import toml
+from flask import Flask, Response, json, jsonify, request
 from flask.helpers import send_file
 from flask_cors import CORS
-from flask import jsonify, Response
+
 from convert import train_new_model
 from database import *
 from influx import write_to_influx
-import toml
-import logging
 
 app = Flask(__name__)
 CORS(app)
@@ -76,8 +77,9 @@ def get_model_part(id, file):
 def save_to_db():
     """POST route to handle data that should be written to InfluxDB"""
     try:
-        # Attempt to load the config file before calling the function to ensure it's present
-        CONFIG = toml.load("config.toml")["influxdb"]
+        # Attempt to load the config file before calling the
+        # function to ensure it's present
+        toml.load("config.toml")["influxdb"]
         # Get the required data from the request
         gesture_name = request.get_json()["gesture_name"]
         fields = request.get_json()["fields"]
