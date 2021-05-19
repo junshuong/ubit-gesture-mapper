@@ -14,9 +14,9 @@ def write_to_influx(gesture_name, fields):
     '''Write data to InfluxDB and return a Flask response'''
     # Attempt to load the config_file file
     try:
-        config_file = toml.load('config_file.toml')['influxdb']
+        config_file = toml.load('config.toml')['influxdb']
     except (FileNotFoundError, KeyError):
-        logging.error('config_file file not found.')
+        logging.error('Config file not found.')
 
     influx_protocol = "http"
     if config_file['tls']:
@@ -41,7 +41,6 @@ def write_to_influx(gesture_name, fields):
 
     # Attempt to write the list of datapoints to the database
     try:
-        logging.info(json_body)
         # Write the JSON object into the database
         _write_client.write(config_file['bucket'], config_file['organization'], json_body)
         _write_client.__del__()
