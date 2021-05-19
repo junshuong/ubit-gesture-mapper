@@ -99,7 +99,7 @@ function ModelOutput(props: { weightMap: {} }) {
 
     let flattened: number[] = []
     
-    activeModel.history.forEach(el => {
+    activeModel.history.accelerometer.forEach(el => {
         flattened.push(el.x)
         flattened.push(el.y)
         flattened.push(el.z)

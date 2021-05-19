@@ -3,11 +3,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectAccelerometerData,
-
   selectButtonData,
-
-
-
   selectMagnetometerBearing, selectMagnetometerCalibration, selectMagnetometerData, selectTemperature
 } from './microbitSlice';
 
@@ -19,7 +15,7 @@ export function MicrobitData(props: any) {
       <Acceleration />
       <Temperature />
       <Buttons />
-      <Magnetometer/>
+      <Magnetometer />
     </div>
   );
 }
@@ -62,8 +58,8 @@ function Magnetometer() {
           Data
         </Typography>
         <Typography variant="body2" component="p">
-          x : {magnetometerData.x} | 
-          y : {magnetometerData.y} | 
+          x : {magnetometerData.x} |
+          y : {magnetometerData.y} |
           z : {magnetometerData.z}
         </Typography>
         <Typography color="textSecondary">
@@ -97,7 +93,7 @@ function Buttons() {
           Data
         </Typography>
         <Typography variant="body2" component="p">
-          Button A : {buttonData.a ? "Pressed" : "Not Pressed"} <br/>
+          Button A : {buttonData.a ? "Pressed" : "Not Pressed"} <br />
           Button B : {buttonData.b ? "Pressed" : "Not Pressed"}
         </Typography>
       </CardContent>
@@ -110,21 +106,21 @@ function Acceleration() {
 
   return (
     <Card variant="outlined">
-        <CardContent>
-          <Typography color="textSecondary" gutterBottom>
+      <CardContent>
+        <Typography color="textSecondary" gutterBottom>
+        </Typography>
+        <Typography variant="h5" component="h2">
+          Accelerometer
           </Typography>
-          <Typography variant="h5" component="h2">
-            Accelerometer
+        <Typography color="textSecondary">
+          Data
           </Typography>
-          <Typography color="textSecondary">
-            Data
-          </Typography>
-          <Typography variant="body2" component="p">
-            x : {accelerometerData.x} | 
-            y : {accelerometerData.y} | 
+        <Typography variant="body2" component="p">
+          x : {accelerometerData.x} |
+            y : {accelerometerData.y} |
             z : {accelerometerData.z}
-          </Typography>
-        </CardContent>
-      </Card>
+        </Typography>
+      </CardContent>
+    </Card>
   )
 }
