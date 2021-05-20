@@ -16,9 +16,9 @@ class Gesture(db.Entity):
     classification = Required(int)
     using_file = Required(bool)
     sound_file = Optional(str)
-    frequency = Required(float)
-    strength = Required(float)
-    volume = Required(float)
+    frequency = Optional(float)
+    strength = Optional(float)
+    volume = Optional(float)
 
 
 class GestureCapture(db.Entity):
@@ -48,7 +48,7 @@ def get_gesture_from_db(gesture_id):
 
 @db_session
 def create_gesture(name, model_id, classification):
-    Gesture(model=model_id, name=name, classification=classification)
+    Gesture(model=model_id, name=name, classification=classification, using_file=False)
     commit()
 
 @db_session
