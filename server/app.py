@@ -14,9 +14,6 @@ CORS(app)
 
 setup_database()
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-
 @app.route('/gesture', methods=['POST'])
 def gesture():
     json_data = request.get_json()
@@ -29,33 +26,12 @@ def gesture():
     return jsonify(success=True)
 
 
-=======
->>>>>>> 489deb5... API endpoints and refactoring
-=======
->>>>>>> 355d3f55965876dca16613f1c01554ea71e0e976
 @app.route('/create_model', methods=['POST'])
 def create_model():
     json_data = request.get_json()
     name = json_data["name"]
     description = json_data["description"]
     add_model(name, description)
-<<<<<<< HEAD
-    return jsonify(success=True)
-
-
-<<<<<<< HEAD
-=======
-@app.route('/create_gesture', methods=['POST'])
-def add_gesture():
-    json_data = request.get_json()
-    name = json_data["name"]
-    model_id = json_data["id"]
-    classification = json_data["classification"]
-    create_gesture(name, model_id, classification)
-    return jsonify(success=True)
-
-
-=======
     return jsonify(success=True)
 
 
@@ -69,7 +45,6 @@ def add_gesture():
     return jsonify(success=True)
 
 
->>>>>>> 355d3f55965876dca16613f1c01554ea71e0e976
 @app.route('/add_capture', methods=['POST'])
 def add_capture():
     json_data = request.get_json()
@@ -85,24 +60,18 @@ def get_gesture(gesture_id):
     return get_gesture_from_db(gesture_id)
 
 
-<<<<<<< HEAD
->>>>>>> 489deb5... API endpoints and refactoring
-=======
->>>>>>> 355d3f55965876dca16613f1c01554ea71e0e976
+
 @app.route('/get_models', methods=['GET'])
 def get_models():
     return {"models": get_all_models()}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 
 @app.route('/get_model', methods=['POST'])
 def get_model():
     model_id = request.get_json()["id"]
-    return get_gesture_model(model_id)
-=======
-=======
->>>>>>> 355d3f55965876dca16613f1c01554ea71e0e976
+    return get_model_from_db(model_id)
+
+
 @app.route('/get_model/<model_id>', methods=['GET'])
 def get_model(model_id):
     return get_model_from_db(model_id)
@@ -112,11 +81,7 @@ def remove_gesture():
     g_id = request.get_json()["gesture_id"]
     delete_gesture(g_id)
     return jsonify(success=True)
-<<<<<<< HEAD
->>>>>>> 489deb5... API endpoints and refactoring
 
-=======
->>>>>>> 355d3f55965876dca16613f1c01554ea71e0e976
 
 @app.route('/delete_model', methods=['POST'])
 def delete_model():
@@ -143,8 +108,6 @@ def get_trained_model():
 def get_model_part(id, file):
     return send_file(f"./learners/model-{id}/web_model/{file}")
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 
 @app.route('/save_to_db', methods=['POST'])
 def save_to_db():
@@ -163,7 +126,3 @@ def save_to_db():
         # Return a 500 error if the config is missing or data is malformed
         logging.error(err)
         return Response(status=500, mimetype='application/json')
-=======
->>>>>>> 489deb5... API endpoints and refactoring
-=======
->>>>>>> 355d3f55965876dca16613f1c01554ea71e0e976
