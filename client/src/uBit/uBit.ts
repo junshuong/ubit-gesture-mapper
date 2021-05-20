@@ -6,9 +6,7 @@ import services from './services.json';
 
 const enabledServices: BluetoothServiceUUID[] = [
     services.accelerometer.uuid,
-    services.magnetometer.uuid,
-    services.button.uuid,
-    services.temperature.uuid
+    services.magnetometer.uuid
 ];
 
 export let uBit: uBitDevice;
@@ -138,9 +136,7 @@ class uBitDevice {
 
             let allServices = [
                 () => { this.enableAccelerometer(this.server) },
-                () => { this.enableButtons(this.server) },
                 () => { this.enableMagnetometer(this.server) },
-                () => { this.enableTemperature(this.server) }
             ];
             this.processServices(this.server, allServices);
         } catch (error) {
