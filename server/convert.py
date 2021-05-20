@@ -8,24 +8,7 @@ from platform import system
 
 def import_data(model_id):
     raw_data = get_all_gestures(model_id)
-    records = {}
-    for gesture in raw_data:
-        id = gesture[0]
-        target = gesture[1]
-        ax = gesture[2]
-        ay = gesture[3]
-        az = gesture[4]
-        mx = gesture[5]
-        my = gesture[6]
-        mz = gesture[7]
-        if id not in records:
-            records[id] = {}
-        records[id]["target"] = target
-        if "data" not in records[id]:
-            records[id]["data"] = []
-        records[id]["data"].append([ax, ay, az, mx, my, mz])
-    return list(records.values())
-
+    return [(g[0:-1], g[-1]) for g in raw_data]
 
 def random_training_sample(data):
     return data[random.randint(0, len(data)-1)]
@@ -71,19 +54,18 @@ def train_new_model(model_id):
     # 1 Gesture, 180 data points (30 x, y, z accelerometer values and 30 x, y, z magnetometer values)
     input_shape = (1, 180)
     classifier_count = 2  # Number of unique possible outputs
-
+    print("Creating model")
     # Creating the classifier
     model = create_model(input_shape, classifier_count)
     # Importing the data from the database
-    training_data = import_data(model_id)
-    input_tensors, target_tensors = all_training_samples(
-        training_data)  # Splitting data into x and y
+    training_data = list(zip(*import_data(model_id)))
+    input_tensors, target_tensors = training_data[0], training_data[1]
     print(f"Length inputs: {len(input_tensors[0])}")
     # Shaping x and y (because tensorflow)
-    train_x = tf.concat(input_tensors, 0)
-    train_y = tf.concat(target_tensors, 0)
+    # train_x = tf.concat(input_tensors, 0)
+    # train_y = tf.concat(target_tensors, 0)
 
-    model.fit(train_x, train_y, epochs=20)  # Fitting the data
+    model.fit(input_tensors, target_tensors, epochs=20)  # Fitting the data
     model.save_weights(f"./checkpoints/model-{model_id}")
     # Saving the raw model
     tf.saved_model.save(model, f"./learners/model-{model_id}")
