@@ -1,8 +1,5 @@
-import tensorflow as tf
-from database import get_all_gestures, setup_database
-import random
-import numpy as np
 import os
+import random
 from platform import system
 
 
