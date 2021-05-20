@@ -95,7 +95,7 @@ export const microbitSlice = createSlice({
             //     state.history.accelerometerHistory.pop();
             // }
 
-            if (state.completedAccelTicks < 30) {
+            if (state.completedAccelTicks < state.ticks) {
                 state.history.accelerometerHistory.push({ x: action.payload.x, y: action.payload.y, z: action.payload.z });
                 state.completedAccelTicks = state.completedAccelTicks + 1;
             }
@@ -114,7 +114,7 @@ export const microbitSlice = createSlice({
             state.magnetometer.data.y = action.payload.y;
             state.magnetometer.data.z = action.payload.z;
 
-            if (state.completedMagnetTicks < 30) {
+            if (state.completedMagnetTicks < state.ticks) {
                 state.history.magnetometerHistory.push({ x: action.payload.x, y: action.payload.y, z: action.payload.z });
                 state.completedMagnetTicks = state.completedMagnetTicks + 1;
             }
@@ -125,9 +125,10 @@ export const microbitSlice = createSlice({
         setMagnetometerCalibration: (state, action: PayloadAction<number>) => {
             state.magnetometer.calibration = action.payload;
         },
-        clearHistory: (state) => {
+        clearHistory:  (state, action: PayloadAction<number>) => {
             state.history.accelerometerHistory = [];
             state.history.magnetometerHistory = [];
+            state.ticks = action.payload;
             state.completedAccelTicks = 0;
             state.completedMagnetTicks = 0;
         }

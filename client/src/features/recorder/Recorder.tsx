@@ -98,10 +98,25 @@ export function Recorder(props: { match: { params: { model_id: number, gesture_i
     }
   }, [activeGesture])
 
+  function recordTicks(countdown: number) {
+    setTimeout(() => {
+      store.dispatch(clearHistory(ticks))
+    }, countdown * 1000);
+  }
+
   const handleChange = (event: any, value: number | number[]) => {
     if (!Array.isArray(value) && value >= 30) {
       setFrames(value);
     }
+  };
+
+  const handleTicksChange = (event: any, value: number | number[]) => {
+    if (!Array.isArray(value) && value >= 30) {
+      console.log("TICKS ARE SET AS " + value);
+      setTicks(value);
+    }
+
+    //(e, v) => setTicks(!Array.isArray(v) ? v : v[0])
   };
 
   const handleSendData = () => {
@@ -125,7 +140,7 @@ export function Recorder(props: { match: { params: { model_id: number, gesture_i
           <CleanSlider className={classes.v1} valueLabelDisplay="on" defaultValue={3} min={0} max={10} onChange={(e, v) => setCountdown(!Array.isArray(v) ? v : v[0])} />
          
           <Typography className={classes.l2}>Ticks</Typography>
-          <CleanSlider className={classes.v2} valueLabelDisplay="on" defaultValue={30} min={30} max={30 + 100} onChange={(e, v) => setTicks(!Array.isArray(v) ? v : v[0])} />
+          <CleanSlider className={classes.v2} valueLabelDisplay="on" defaultValue={30} min={30} max={30 + 100} onChange={handleTicksChange} />
           <Button className={classes.b1} size="small" variant="contained" color="primary" onClick={() => recordTicks(countdown)}>Record</Button>
         </div>
       </Paper>
@@ -321,9 +336,5 @@ function postGesture(gesture_id: number, classification: number, data: ActiveHis
   });
 }
 
-function recordTicks(countdown: number) {
-  setTimeout(() => {
-    store.dispatch(clearHistory())
-  }, countdown * 1000);
-}
+
 
