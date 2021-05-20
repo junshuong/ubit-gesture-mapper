@@ -32,7 +32,7 @@ function App() {
         <RecordHeader />
         <Alert />
         <Switch>
-          <Route exact path="/recorder/:id" component={Recorder} />
+          <Route exact path="/recorder/:model_id/:gesture_id" component={Recorder} />
           <Route exact path="/models">
             <Models />
           </Route>

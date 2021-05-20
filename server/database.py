@@ -5,15 +5,26 @@ db = Database()
 
 class Model(db.Entity):
     name = Required(str)
-    description = Required(str)
+    description = Optional(str)
     gestures = Set('Gesture')
-    tickCount = Required(int)
 
 
 class Gesture(db.Entity):
     model = Required(Model)
+    name = Optional(str)
+    captures = Set('GestureCapture')
+    classification = Required(int)
+    using_file = Required(bool)
+    sound_file = Optional(str)
+    frequency = Required(float)
+    strength = Required(float)
+    volume = Required(float)
+
+
+class GestureCapture(db.Entity):
     data = Set('DataTick')
-    classification = Required(bool)
+    gesture = Required(Gesture)
+    classification = Required(int)
 
 
 class DataTick(db.Entity):
@@ -23,13 +34,42 @@ class DataTick(db.Entity):
     magnet_x = Required(float)
     magnet_y = Required(float)
     magnet_z = Required(float)
-    gesture = Required(Gesture)
+    capture = Required(GestureCapture)
 
 
 def setup_database():
     db.bind(provider='sqlite', filename='main.db', create_db=True)
     db.generate_mapping(create_tables=True)
 
+
+@db_session
+def get_gesture_from_db(gesture_id):
+    return Gesture[gesture_id].to_dict()
+
+@db_session
+def create_gesture(name, model_id, classification):
+    Gesture(model=model_id, name=name, classification=classification)
+    commit()
+
+@db_session
+def delete_gesture(gesture_id):
+    Gesture[gesture_id].delete()
+    commit()
+
+@db_session
+def create_capture(classification, accel_data, magnet_data, gesture_id):
+    capture = GestureCapture(gesture=Gesture[gesture_id], classification=classification)
+    for accel, mag in zip(accel_data, magnet_data):
+        DataTick(
+            accel_x=accel["x"],
+            accel_y=accel["y"],
+            accel_z=accel["z"],
+            magnet_x=mag["x"],
+            magnet_y=mag["y"],
+            magnet_z=mag["z"],
+            capture=capture
+        )
+    commit()
 
 @db_session
 def add_gesture(checked, accel_data, magnet_data, model_id):
@@ -46,21 +86,38 @@ def add_gesture(checked, accel_data, magnet_data, model_id):
         )
     commit()
 
+def build_gesture(id, name, classification):
+    return {"id": id, "name": name, "classification": classification}
+
+@db_session
+def add_model_gestures(model_id):
+    m = Model[model_id]
+    return select (build_gesture(g.id, g.name, g.classification) for g in m.gestures)
+
 
 @db_session
 def get_all_gestures(model_id):
     current_model = Model[model_id]
-
-    result = select((g.id, g.classification, d.accel_x, d.accel_y, d.accel_z, d.magnet_x, d.magnet_y, d.magnet_z, d.id)
-                    for g in current_model.gestures
-                    for d in g.data)[:]
+    # Represents input with target as the last element
+    result = select((
+        g.id,
+        d.accel_x,
+        d.accel_y,
+        d.accel_z,
+        d.magnet_x,
+        d.magnet_y,
+        d.magnet_z,
+        g.id if g.classification == 1 else 0)
+        for g in current_model.gestures
+        for c in g.captures
+        for d in c.data)[:]
     print(f"len res: {len(result)}")
     return result
 
 
 @db_session
-def add_model(name, description, tickCount):
-    model = Model(name=name, description=description, tickCount=tickCount)
+def add_model(name, description):
+    Model(name=name, description=description)
     commit()
 
 
@@ -77,5 +134,7 @@ def delete_gesture_model(model_id):
 
 
 @db_session
-def get_gesture_model(model_id):
-    return Model[model_id].to_dict(with_collections=True)
+def get_model_from_db(model_id):
+    models = Model[model_id].to_dict(with_collections=True, related_objects=True)
+    models["gestures"] = [mg.to_dict() for mg in models["gestures"]]
+    return models
