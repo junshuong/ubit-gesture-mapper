@@ -66,12 +66,6 @@ def get_models():
     return {"models": get_all_models()}
 
 
-@app.route('/get_model', methods=['POST'])
-def get_model():
-    model_id = request.get_json()["id"]
-    return get_model_from_db(model_id)
-
-
 @app.route('/get_model/<model_id>', methods=['GET'])
 def get_model(model_id):
     return get_model_from_db(model_id)
