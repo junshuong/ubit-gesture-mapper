@@ -1,33 +1,52 @@
 import { CChart } from '@coreui/react-chartjs';
 import { Button, Checkbox, CircularProgress, makeStyles, Paper, Slider, Typography, withStyles } from '@material-ui/core';
-import Axios from 'axios';
+import { default as axios, default as Axios } from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { store } from '../../app/store';
 import cfg from '../../config.json';
-import { AccelerometerState, clearHistory, MagnetometerState, setTicks, selectHistory, ActiveHistoryState } from '../microbit/microbitSlice';
-import { selectActiveModel } from '../models/activeModelSlice';
-import { fetchModel } from '../models/Model';
+import { AccelerometerState, ActiveHistoryState, clearHistory, MagnetometerState, selectHistory } from '../microbit/microbitSlice';
 
 const useStyles = makeStyles((theme) => ({
   sendForm: {
-    padding: 10,
+    margin: 10,
+  },
+  recordSec: {
+    paddingTop: 10,
+    paddingLeft: 10,
+    paddingRight: 10,
+    marginLeft: 10,
+    marginRight: 10,
+    maxHeight: "100px"
   },
   recordForm: {
-    padding: "10px 15% 15px 15%",
-    '& > p': {
-      padding: 10
-    },
-    '& > *': {
-      margin: theme.spacing(0),
-    },
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr 1fr",
+    gridTemplateRows: "1fr 1fr 1fr",
+    gap: "5px 5px",
+    gridTemplateAreas: `"l1 v1 v1 b1" "l2 v2 v2 b1" ". . . ."`
   },
+  l2: {
+    gridArea: "l2",
+    textAlign: "left",
+    display: "flex",
+    alignItems: "center",
+  },
+  l1: {
+    gridArea: "l1",
+    textAlign: "left",
+    display: "flex",
+    alignItems: "center",
+  },
+  v1: { gridArea: "v1", width: "auto", marginRight: 10 },
+  v2: { gridArea: "v2", width: "auto", marginRight: 10 },
+  b1: { gridArea: "b1"},
   root: {
-    margin: 20
+    margin: 10
   },
   title: {
-    padding: 20,
-    margin: 20
+    padding: 10,
+    margin: 10
   },
   label: {
     paddingBottom: 10
@@ -39,64 +58,89 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export function Recorder(props: { match: { params: { id: any } }, history: string[] }) {
+interface ActiveGesture {
+  id: number,
+  model: number,
+  name: string,
+  classification: number
+}
+
+const initialActiveState: ActiveGesture = {
+  id: 0,
+  model: 0,
+  name: '',
+  classification: 0
+}
+
+export function Recorder(props: { match: { params: { model_id: number, gesture_id: number } }, history: string[] }) {
   const history = useSelector(selectHistory);
   const classes = useStyles();
-  const activeModel = useSelector(selectActiveModel);
-
-  const id = props.match.params.id;
-
+  const [activeGesture, setActiveGesture] = useState(initialActiveState);
+  const gesture_id = props.match.params.gesture_id;
   const [countdown, setCountdown] = useState(3);
-  const [ticks, setTicks] = useState(activeModel.tickCount);
+  const [ticks, setTicks] = useState(30);
   const [checked, setChecked] = useState(true);
+  const [frames, setFrames] = useState(30);
 
-  const [frames, setFrames] = useState<number>(activeModel.tickCount);
+  const fetchGesture = () => {
+    axios.get(`${cfg.server_url}/get_gesture/${gesture_id}`).then((res) => {
+      setActiveGesture(res.data);
+    }).catch((err) => {
+      console.error(err);
+    })
+  }
 
   useEffect(() => {
-    if (activeModel.name === "") {
-      fetchModel(id);
+    if (activeGesture.name === "") {
+      fetchGesture();
     } else {
-      setTicks(activeModel.tickCount);
-      setFrames(activeModel.tickCount); 
+      setFrames(30); 
     }
-  }, [activeModel.name, activeModel.tickCount, id])
+  }, [activeGesture])
 
   const handleChange = (event: any, value: number | number[]) => {
-    if (!Array.isArray(value) && value >= activeModel.tickCount) {
+    if (!Array.isArray(value) && value >= 30) {
       setFrames(value);
     }
   };
 
-  if (activeModel.name !== "") {
+  const handleSendData = () => {
+    postGesture(activeGesture.id, activeGesture.classification, history, frames);
+  }
+
+  if (activeGesture.name === "") {
     return (
-      <div className={classes.root}>
-        <Paper variant="outlined" className={classes.title}>
-          <Typography variant="h4">{activeModel.name}</Typography>
-        </Paper>
-        <Paper variant="outlined" className={classes.root}>
-          <div className={classes.recordForm}>
-            <Typography>Countdown</Typography>
-            <CleanSlider valueLabelDisplay="on" defaultValue={3} min={0} max={10} onChange={(e, v) => setCountdown(!Array.isArray(v) ? v : v[0])} />
-            <Typography>Ticks to Record</Typography>
-            <CleanSlider valueLabelDisplay="on" defaultValue={activeModel.tickCount} min={activeModel.tickCount} max={activeModel.tickCount + 100} onChange={(e, v) => setTicks(!Array.isArray(v) ? v : v[0])} />
-            <Button variant="contained" color="primary" onClick={() => recordTicks(ticks, countdown)}>Record Ticks</Button>
-          </div>
-        </Paper>
-        <DataChart />
-        <Paper variant="outlined" className={classes.root}>
-          <div className={classes.sendForm}>
-            <Typography className={classes.label}>Capture Frames</Typography>
-            <CleanSlider suppressContentEditableWarning suppressHydrationWarning valueLabelDisplay="on" value={frames} defaultValue={activeModel.tickCount} min={0} max={ticks} onChange={handleChange} marks={[{ value: frames - activeModel.tickCount }]} />
-            <Typography>Is correct: <Checkbox checked={checked} onChange={(e) => setChecked(e.target.checked)} /></Typography>
-            <Button variant="contained" color="primary" onClick={() => postGesture(checked, history, activeModel.tickCount, frames, id)}>Send Data</Button>
-          </div>
-        </Paper>
-      </div>
+      <CircularProgress className={classes.progress} />
     );
   }
+  
   return (
-      <CircularProgress className={classes.progress}/>
-  )
+    <div className={classes.root}>
+      <Paper variant="outlined" className={classes.title}>
+        <Typography variant="h5">{activeGesture.name}</Typography>
+      </Paper>
+      <Paper variant="outlined" className={classes.recordSec}>
+        <div className={classes.recordForm}>
+          <Typography className={classes.l1}>Countdown</Typography>
+          <CleanSlider className={classes.v1} valueLabelDisplay="on" defaultValue={3} min={0} max={10} onChange={(e, v) => setCountdown(!Array.isArray(v) ? v : v[0])} />
+         
+          <Typography className={classes.l2}>Ticks</Typography>
+          <CleanSlider className={classes.v2} valueLabelDisplay="on" defaultValue={30} min={30} max={30 + 100} onChange={(e, v) => setTicks(!Array.isArray(v) ? v : v[0])} />
+          <Button className={classes.b1} size="small" variant="contained" color="primary" onClick={() => recordTicks(countdown)}>Record</Button>
+        </div>
+      </Paper>
+      <DataChart />
+      <MagnetChart/>
+      <Paper variant="outlined" className={classes.root}>
+        <div className={classes.sendForm}>
+          <Typography className={classes.label}>Capture Frames</Typography>
+          <CleanSlider suppressContentEditableWarning suppressHydrationWarning valueLabelDisplay="on" value={frames} defaultValue={30} min={0} max={ticks} onChange={handleChange} marks={[{ value: frames - 30}]} />
+          <Typography>Is correct: <Checkbox checked={checked} onChange={(e) => setChecked(e.target.checked)} /></Typography>
+          <Button variant="contained" color="primary" onClick={handleSendData}>Send Data</Button>
+        </div>
+      </Paper>
+    </div>
+  );
 }
 
 function DataChart() {
@@ -109,32 +153,17 @@ function DataChart() {
     var axs: number[] = [];
     var ays: number[] = [];
     var azs: number[] = [];
-    var mxs: number[] = [];
-    var mys: number[] = [];
-    var mzs: number[] = [];
     var i: number = 0;
 
     let accel = data.accelerometerHistory;
 
-    // Dirty accounting for inconsistency in tick times
-    if (accel.length !== data.magnetometerHistory.length) {
-      if (accel.length < 1) {
-        accel = []
-      } else {
-        accel = accel.slice(1, accel.length-1);
-      }
-    }
-  
     for (i = 0; i < accel.length; i++) {
       indexs.push(i);
       axs.push(accel[i].x);
       ays.push(accel[i].y);
       azs.push(accel[i].z);
-      mxs.push(data.magnetometerHistory[i].x/20);
-      mys.push(data.magnetometerHistory[i].y/20);
-      mzs.push(data.magnetometerHistory[i].z/20);
     }
-    return { indexs: indexs, axs: axs, ays: ays, azs: azs, mxs: mxs, mys: mys, mzs: mzs }
+    return { indexs: indexs, axs: axs, ays: ays, azs: azs}
   }
 
   return (
@@ -174,7 +203,44 @@ function DataChart() {
           pointHoverBorderColor: 'rgba(179,181,255,1)',
           tooltipLabelColor: 'rgba(179,181,255,1)',
           data: historySplit.azs
-        },
+        }
+      ]}
+      options={{
+        aspectRatio: 2,
+        animation: false
+      }}
+      labels={historySplit.indexs}
+    />
+  );
+}
+
+function MagnetChart() {
+  const history = useSelector(selectHistory);
+  const historySplit = splitHistory(history);
+  const classes = useStyles();
+
+  function splitHistory(data: ActiveHistoryState) {
+    var indexs: number[] = [];
+    var mxs: number[] = [];
+    var mys: number[] = [];
+    var mzs: number[] = [];
+    var i: number = 0;
+    let ma = data.magnetometerHistory;
+
+    for (i = 0; i < ma.length; i++) {
+      indexs.push(i);
+      mxs.push(data.magnetometerHistory[i].x);
+      mys.push(data.magnetometerHistory[i].y);
+      mzs.push(data.magnetometerHistory[i].z);
+    }
+    return { indexs: indexs, mxs: mxs, mys: mys, mzs: mzs }
+  }
+
+  return (
+    <CChart
+      className={classes.root}
+      type="line"
+      datasets={[
         {
           label: 'Magnetometer X',
           backgroundColor: 'rgba(125,130,184,0.2)',
@@ -237,28 +303,27 @@ const CleanSlider = withStyles({
 
 
 /**
- * Posts a gesture to the server.
+ * Posts a capture to the server.
  */
-function postGesture(checked: boolean, data: ActiveHistoryState, frames: number, lastFrame: number, model_id: number) {
-  let acclerometerData: AccelerometerState[] = data.accelerometerHistory.slice(lastFrame - frames, lastFrame);
-  let magnetometerData: MagnetometerState[] = data.accelerometerHistory.slice(lastFrame - frames, lastFrame);
+function postGesture(gesture_id: number, classification: number, data: ActiveHistoryState, lastFrame: number) {
+  let acclerometerData: AccelerometerState[] = data.accelerometerHistory.slice(lastFrame - 30, lastFrame);
+  let magnetometerData: MagnetometerState[] = data.magnetometerHistory.slice(lastFrame - 30, lastFrame);
   let payload = {
-    checked: checked,
+    classification: classification,
     acclerometerData: acclerometerData,
     magnetometerData: magnetometerData,
-    model_id: model_id
+    gesture_id: gesture_id
   }
 
-  Axios.post(`${cfg.server_url}/gesture`, payload).then(() => {
+  Axios.post(`${cfg.server_url}/add_capture`, payload).then(() => {
   }).catch((res) => {
     console.log(res);
-  })
+  });
 }
 
-function recordTicks(ticks: number, countdown: number) {
+function recordTicks(countdown: number) {
   setTimeout(() => {
     store.dispatch(clearHistory())
-    store.dispatch(setTicks(ticks));
-  }, countdown * 1000)
+  }, countdown * 1000);
 }
 

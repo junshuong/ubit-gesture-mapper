@@ -22,7 +22,6 @@ const useStyles = makeStyles({
 export function Models(this: any) {
   const [open, setOpen] = useState(false);
   const [createName, setCreateName] = useState("");
-  const [createTickCount, setCreateTickCount] = useState(0);
   const [createDescription, setCreateDescription] = useState("");
 
   const models = useSelector(selectModels);
@@ -69,13 +68,6 @@ export function Models(this: any) {
             label="Description"
             fullWidth
           />
-          <TextField
-            onChange={(e) => setCreateTickCount(parseInt(e.target.value))}
-            margin="dense"
-            id="tickCount"
-            label="Tick Count"
-            fullWidth
-          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
@@ -83,7 +75,7 @@ export function Models(this: any) {
           </Button>
           <Button onClick={() => {
             handleClose();
-            postModel(createName, createDescription, createTickCount);
+            postModel(createName, createDescription);
           }
           } color="primary">
             Create
@@ -130,11 +122,10 @@ function renderModels() {
   })
 }
 
-function postModel(name: string, description: string, tickCount: number) {
+function postModel(name: string, description: string) {
   let payload = {
     name: name,
     description: description,
-    tickCount: tickCount
   }
   axios.post(`${cfg.server_url}/create_model`, payload).then(() => {
     renderModels();
