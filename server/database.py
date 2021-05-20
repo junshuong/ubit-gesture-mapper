@@ -14,6 +14,11 @@ class Gesture(db.Entity):
     name = Optional(str)
     captures = Set('GestureCapture')
     classification = Required(int)
+    using_file = Required(bool)
+    sound_file = Optional(str)
+    frequency = Required(float)
+    strength = Required(float)
+    volume = Required(float)
 
 
 class GestureCapture(db.Entity):
