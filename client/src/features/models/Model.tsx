@@ -45,6 +45,17 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
     });
   };
 
+  function sendTrainModel() {
+    let payload = {
+      id: activeModel.id
+    }
+    axios.post(`${cfg.server_url}/train_model`, payload).then((res) => {
+      console.log(res);
+    }).catch((err) => {
+      console.error(err);
+    });
+  }
+
   useEffect(() => {
     fetchModel(id);
   }, [id])
@@ -68,14 +79,18 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
       <Paper className={classes.root} variant="outlined">
         {/* <Typography variant="h4">Loading the model</Typography>
         <Typography variant="body1">Enable the model using the button below and the status of the ouput will be indicated on the checkboxes below.</Typography> */}
+
+        <Button color="primary" variant="contained" onClick={sendTrainModel}>
+          Train Model
+        </Button>
         <Button color="primary" variant="contained" onClick={() => {
           loadModel(activeModel.id).then((res) => {
             setWeightMap(res);
-          })
+          });
         }
         }><Typography>Load Model</Typography></Button>
         <Typography>Is Active <Checkbox disabled checked={activeModel.isActive} /></Typography>
-        {/* <ModelOutput weightMap={weightMap} /> */}
+        <ModelOutput weightMap={weightMap} />
       </Paper>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle id="form-dialog-title">Create Model</DialogTitle>
@@ -114,7 +129,7 @@ function MiniAudio(props: { gesture: GestureState }) {
   const gesture = props.gesture;
   const [source, setSource] = useState<AudioBufferSourceNode>();
   const [playing, setPlaying] = useState(false);
-  
+
   const context = new AudioContext();
 
   function loadAudioFile() {
@@ -256,12 +271,20 @@ function ModelOutput(props: { weightMap: {} }) {
     flattened.push(el.z)
   });
 
-  if (flattened.length === 30 * 6) {
-    forwardPass(props.weightMap, flattened).then((output: any) => {
-      setOn(output[0]);
-      setOff(output[1]);
-    })
-  }
+  activeModel.history.magnetometer.forEach(el => {
+    flattened.push(el.x);
+    flattened.push(el.y);
+    flattened.push(el.z);
+  })
+
+  useEffect(() => {
+    if (flattened.length === 30 * 6) {
+      forwardPass(props.weightMap, flattened).then((output: any) => {
+        console.log(output);
+      })
+    }
+  }, [activeModel]);
+
 
   const triggerAudio = () => {
     const trigger = on > off;
@@ -269,13 +292,10 @@ function ModelOutput(props: { weightMap: {} }) {
     return trigger;
   }
 
+
+
   return (
     <div>
-      <Typography>Triggered <Checkbox disabled checked={triggerAudio()} /></Typography>
-      <div>On</div>
-      <div>{on}</div>
-      <div>Off</div>
-      <div>{off}</div>
     </div>
   );
 }
@@ -286,7 +306,7 @@ async function forwardPass(weightMapPromise: tf.NamedTensorMap, data: number[]) 
 
   if (Object.keys(weightMap).length < 1) return [0, 0];
 
-  const input = tf.tensor2d(data, [1, 120])
+  const input = tf.tensor2d(data, [1, 180])
 
   const fc1_bias = weightMap['StatefulPartitionedCall/sequential/dense/BiasAdd/ReadVariableOp'];
   const fc1_weight = weightMap['StatefulPartitionedCall/sequential/dense/MatMul/ReadVariableOp'];

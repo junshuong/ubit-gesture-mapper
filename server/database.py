@@ -96,23 +96,25 @@ def add_model_gestures(model_id):
 
 
 @db_session
+def get_classifier_count(model_id):
+    m = Model[model_id]
+    return len(m.gestures)
+
+
+@db_session
 def get_all_gestures(model_id):
-    current_model = Model[model_id]
-    # Represents input with target as the last element
-    result = select((
-        g.id,
-        d.accel_x,
-        d.accel_y,
-        d.accel_z,
-        d.magnet_x,
-        d.magnet_y,
-        d.magnet_z,
-        g.id if g.classification == 1 else 0)
-        for g in current_model.gestures
-        for c in g.captures
-        for d in c.data)[:]
-    print(f"len res: {len(result)}")
-    return result
+    cm = Model[model_id]
+    ca = select(g.captures for g in cm.gestures)
+    all_x = []
+    all_y = []
+
+    for c in ca:
+        x_data = select([d.accel_x, d.accel_y, d.accel_z, d.magnet_x, d.magnet_y, d.magnet_z] for d in c.data)[:]
+        y_data = select([c.classification] for d in c.data)[:]
+        all_x.append(list(x_data))
+        all_y.append(list(y_data))
+
+    return all_x, all_y
 
 
 @db_session
