@@ -93,7 +93,7 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
         <ModelOutput weightMap={weightMap} />
       </Paper>
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle id="form-dialog-title">Create Model</DialogTitle>
+        <DialogTitle id="form-dialog-title">Create Gesture</DialogTitle>
         <DialogContent>
           <TextField
             onChange={(e) => setCreateName(e.target.value)}
