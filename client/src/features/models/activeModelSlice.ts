@@ -7,6 +7,11 @@ export interface GestureState {
     name: string,
     classification: number,
     model: number,
+    using_file: boolean,
+    sound_file: string,
+    frequency: number,
+    strength: number,
+    volume: number,
     captures: GestureCaptureState[]
 }
 
@@ -59,8 +64,6 @@ export const activeModelSlice = createSlice({
             state.id = action.payload.id;
             state.name = action.payload.name;
             state.description = action.payload.description;
-            console.log("Setting gestures as ");
-            console.log(action.payload.gestures);
             state.gestures = action.payload.gestures;
         },
         activate: state => {

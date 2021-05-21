@@ -1,4 +1,4 @@
-import { Button, ButtonBase, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, makeStyles, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@material-ui/core';
+import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, makeStyles, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@material-ui/core';
 import * as tf from '@tensorflow/tfjs';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { store } from '../../app/store';
 import cfg from '../../config.json';
-import { Audio } from '../audio/Audio';
 import { setIsPlaying } from '../audio/audioSlice';
 import { activate, GestureState, selectActiveModel, setActiveModel } from './activeModelSlice';
 
@@ -46,10 +45,6 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
     });
   };
 
-  const handleCreateGesture = () => {
-    createGesture(createName, id, activeModel.gestures.length + 1);
-  }
-
   useEffect(() => {
     fetchModel(id);
   }, [id])
@@ -71,8 +66,8 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
         <GestureTable gestures={activeModel.gestures} />
       </Paper>
       <Paper className={classes.root} variant="outlined">
-        <Typography variant="h4">Loading the model</Typography>
-        <Typography variant="body1">Enable the model using the button below and the status of the ouput will be indicated on the checkboxes below.</Typography>
+        {/* <Typography variant="h4">Loading the model</Typography>
+        <Typography variant="body1">Enable the model using the button below and the status of the ouput will be indicated on the checkboxes below.</Typography> */}
         <Button color="primary" variant="contained" onClick={() => {
           loadModel(activeModel.id).then((res) => {
             setWeightMap(res);
@@ -80,7 +75,7 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
         }
         }><Typography>Load Model</Typography></Button>
         <Typography>Is Active <Checkbox disabled checked={activeModel.isActive} /></Typography>
-        <ModelOutput weightMap={weightMap} />
+        {/* <ModelOutput weightMap={weightMap} /> */}
       </Paper>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle id="form-dialog-title">Create Model</DialogTitle>
@@ -107,9 +102,68 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
           </Button>
         </DialogActions>
       </Dialog>
-      <Audio />
+      {activeModel.gestures.map((gesture) => (
+        <MiniAudio key={gesture.id} gesture={gesture} />
+      ))}
     </div>
   );
+}
+
+function MiniAudio(props: { gesture: GestureState }) {
+  const classes = useStyles();
+  const gesture = props.gesture;
+  const [source, setSource] = useState<AudioBufferSourceNode>();
+  const [playing, setPlaying] = useState(false);
+  
+  const context = new AudioContext();
+
+  function loadAudioFile() {
+    axios.get(`${cfg.server_url}/get_audio_file/${gesture.sound_file}`, { responseType: "arraybuffer" }).then((res: any) => {
+      var newSource = context.createBufferSource();
+      context.decodeAudioData(res.data, function (buffer) {
+        newSource.buffer = buffer;
+        newSource.connect(context.destination);
+        setSource(newSource);
+      });
+    }).catch((err) => {
+      console.error(err);
+    });
+  }
+
+  function handlePlaySound() {
+    if (!source || !context) return;
+    if (!playing) {
+      source.start(0);
+    } else {
+      source.stop(0);
+      loadAudioFile();
+    }
+    setPlaying(!playing);
+  }
+
+  useEffect(() => {
+    if (gesture.using_file) {
+      loadAudioFile()
+    }
+  }, [])
+
+  if (gesture.using_file) {
+    return (
+      <Paper className={classes.root} variant="outlined">
+        <Typography>
+          <b>{gesture.name}</b> - playing {gesture.sound_file}
+        </Typography>
+        <Button variant="outlined" onClick={handlePlaySound}>Play Sound</Button>
+      </Paper>
+    );
+  }
+
+
+  return (
+    <Paper className={classes.root} variant="outlined">
+      {gesture.name}
+    </Paper>
+  )
 }
 
 function createGesture(name: string, model_id: number, classification: number) {
@@ -130,25 +184,27 @@ const GestureTable = (props: { gestures: GestureState[] }) => {
 
   return (
     <TableContainer component={Paper}>
-      <Table className={classes.table} aria-label="simple table">
+      <Table className={classes.table}>
         <TableHead>
           <TableRow>
-            <TableCell>ID</TableCell>
-            <TableCell align="right">Name</TableCell>
-            <TableCell align="right">Classification</TableCell>
-            <TableCell align="right"></TableCell>
-            <TableCell align="right"></TableCell>
+            <TableCell>Name</TableCell>
+            <TableCell align="center">Soundmap</TableCell>
+            <TableCell align="center">Training</TableCell>
+            <TableCell align="right">Delete</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {props.gestures.map((gesture) => (
             <TableRow key={gesture.id}>
-              <TableCell component="th" scope="row">
-                {gesture.id}
+              <TableCell>{gesture.name}</TableCell>
+              <TableCell align="center">
+                <Link to={`/soundmap/${gesture.id}`} className={classes.link}>
+                  <Button color="primary" variant="contained">
+                    Map
+                  </Button>
+                </Link>
               </TableCell>
-              <TableCell align="right">{gesture.name}</TableCell>
-              <TableCell align="right">{gesture.classification}</TableCell>
-              <TableCell align="right">
+              <TableCell align="center">
                 <Link to={`/recorder/${gesture.model}/${gesture.id}`} className={classes.link}>
                   <Button color="primary" variant="contained">
                     Record
@@ -156,7 +212,7 @@ const GestureTable = (props: { gestures: GestureState[] }) => {
                 </Link>
               </TableCell>
               <TableCell align="right">
-                <Button onClick={() => removeGesture(gesture.id, gesture.model)} color="primary" variant="contained">Remove</Button>
+                <Button onClick={() => removeGesture(gesture.id, gesture.model)} color="secondary" variant="contained">Remove</Button>
               </TableCell>
             </TableRow>
           ))}

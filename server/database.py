@@ -138,3 +138,10 @@ def get_model_from_db(model_id):
     models = Model[model_id].to_dict(with_collections=True, related_objects=True)
     models["gestures"] = [mg.to_dict() for mg in models["gestures"]]
     return models
+
+@db_session
+def update_mapping_db(gesture_id, using_file, file_name):
+    gesture = Gesture[gesture_id]
+    gesture.set(using_file=using_file, sound_file=file_name)
+    commit()
+

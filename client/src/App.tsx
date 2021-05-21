@@ -9,6 +9,7 @@ import { Models } from './features/models/Models';
 import { connectMicrobitDevice, disconnectMicrobit } from './uBit/uBit';
 import { Model } from './features/models/Model';
 import Tracker from './tracker/Tracker';
+import Soundmap from './features/soundmap/Soundmap';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -40,6 +41,7 @@ function App() {
           <Route exact path="/tracker" >
             <Tracker/>
           </Route>
+          <Route exact path="/soundmap/:gesture_id" component={Soundmap}/>
           <Route exact path="/model/:id" component={Model} />
           <Route path="/">
             <DataHeader />

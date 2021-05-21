@@ -1,3 +1,4 @@
+import io
 import logging
 
 import toml
@@ -102,6 +103,23 @@ def get_trained_model():
 def get_model_part(id, file):
     return send_file(f"./learners/model-{id}/web_model/{file}")
 
+@app.route('/update_mapping', methods=['POST'])
+def update_mapping():
+    json_data = request.get_json()
+    gesture_id = json_data["gesture_id"]
+    using_file = json_data["using_file"]
+    file_name = json_data["file_name"]
+    update_mapping_db(gesture_id, using_file, file_name)
+    return jsonify(success=True)
+    
+@app.route('/get_audio_file/<file_name>', methods=['GET'])
+def get_audio_file(file_name):
+    with open(f"./audio-files/{file_name}.mp3", 'rb') as bites:
+        return send_file(
+                io.BytesIO(bites.read()),
+                attachment_filename='audio.mp3',
+                mimetype='audio/mpeg'
+            )
 
 @app.route('/save_to_db', methods=['POST'])
 def save_to_db():
