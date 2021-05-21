@@ -1,13 +1,13 @@
 import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, makeStyles, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@material-ui/core';
 import * as tf from '@tensorflow/tfjs';
+import { NamedTensorMap } from '@tensorflow/tfjs';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { store } from '../../app/store';
 import cfg from '../../config.json';
-import { setIsPlaying } from '../audio/audioSlice';
-import { activate, GestureState, selectActiveModel, setActiveModel } from './activeModelSlice';
+import { activate, GestureState, selectActiveModel, selectGestureTrigger, setActiveModel, setGestureTrigger } from './activeModelSlice';
 
 const useStyles = makeStyles({
   root: {
@@ -60,7 +60,6 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
     fetchModel(id);
   }, [id])
 
-  const [weightMap, setWeightMap] = useState({});
 
   return (
     <div>
@@ -83,14 +82,8 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
         <Button color="primary" variant="contained" onClick={sendTrainModel}>
           Train Model
         </Button>
-        <Button color="primary" variant="contained" onClick={() => {
-          loadModel(activeModel.id).then((res) => {
-            setWeightMap(res);
-          });
-        }
-        }><Typography>Load Model</Typography></Button>
         <Typography>Is Active <Checkbox disabled checked={activeModel.isActive} /></Typography>
-        <ModelOutput weightMap={weightMap} />
+        <ModelOutput />
       </Paper>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle id="form-dialog-title">Create Gesture</DialogTitle>
@@ -127,6 +120,9 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
 function MiniAudio(props: { gesture: GestureState }) {
   const classes = useStyles();
   const gesture = props.gesture;
+
+  const trigger = store.getState().activeModel.gestures[gesture.classification - 1].triggered;
+
   const [source, setSource] = useState<AudioBufferSourceNode>();
   const [playing, setPlaying] = useState(false);
 
@@ -157,6 +153,10 @@ function MiniAudio(props: { gesture: GestureState }) {
   }
 
   useEffect(() => {
+    handlePlaySound();
+  }, [trigger])
+
+  useEffect(() => {
     if (gesture.using_file) {
       loadAudioFile()
     }
@@ -166,7 +166,7 @@ function MiniAudio(props: { gesture: GestureState }) {
     return (
       <Paper className={classes.root} variant="outlined">
         <Typography>
-          <b>{gesture.name}</b> - playing {gesture.sound_file}
+          <b>{gesture.name}</b> - playing {gesture.sound_file} ACTIVE {trigger ? "YES" : "NO"}
         </Typography>
         <Button variant="outlined" onClick={handlePlaySound}>Play Sound</Button>
       </Paper>
@@ -248,64 +248,93 @@ function removeGesture(id: number, model_id: number) {
   })
 }
 
-async function loadModel(id: number) {
-  console.info("Requesting Tensorflow model...");
-  const weightsManifest: any = await fetchWeightsManifest(id);
-  const weightMap = await tf.io.loadWeights(weightsManifest, `${cfg.server_url}/get_model_part/${id}`);
-  store.dispatch(activate());
-  return await weightMap;
+
+function indexOfMax(arr: number[]) {
+  if (arr.length === 0) {
+      return -1;
+  }
+
+  var max = arr[0];
+  var maxIndex = 0;
+
+  for (var i = 1; i < arr.length; i++) {
+      if (arr[i] > max) {
+          maxIndex = i;
+          max = arr[i];
+      }
+  }
+
+  return maxIndex;
 }
 
-function ModelOutput(props: { weightMap: {} }) {
-  const activeModel = useSelector(selectActiveModel);
-  const dispatch = useDispatch();
-
-  const [on, setOn] = useState(0);
-  const [off, setOff] = useState(0);
-
-  let flattened: number[] = []
-
-  activeModel.history.accelerometer.forEach(el => {
-    flattened.push(el.x)
-    flattened.push(el.y)
-    flattened.push(el.z)
-  });
-
-  activeModel.history.magnetometer.forEach(el => {
-    flattened.push(el.x);
-    flattened.push(el.y);
-    flattened.push(el.z);
-  })
-
-  useEffect(() => {
-    if (flattened.length === 30 * 6) {
-      forwardPass(props.weightMap, flattened).then((output: any) => {
-        console.log(output);
-      })
-    }
-  }, [activeModel]);
 
 
-  const triggerAudio = () => {
-    const trigger = on > off;
-    dispatch(setIsPlaying([trigger]));
-    return trigger;
+function ModelOutput() {
+
+  const [active, setActive] = useState(false);
+  const [weightMap, setWeightMap] = useState<NamedTensorMap>();
+
+  async function loadModel(id: number) {
+    console.info("Requesting Tensorflow model...");
+    const weightsManifest = await fetchWeightsManifest(id);
+    const weightMap = await tf.io.loadWeights(weightsManifest, `${cfg.server_url}/get_model_part/${id}`);
+    store.dispatch(activate());
+    setActive(true);
+    console.info("Weight map set.");
+    return weightMap;
   }
 
 
+  function startCheck() {
+    setTimeout(() => {
+      let ah = store.getState().activeModel.history.accelerometer;
+      let mh = store.getState().activeModel.history.magnetometer;
+
+      if (ah.length != 30 || mh.length != 30) {
+        console.log(ah.length, mh.length);
+        startCheck();
+        return;
+      }
+
+      let formatted = [];
+      for (var i = 0; i < 30; i++) {
+        formatted.push([ah[i].x, ah[i].y, ah[i].z, mh[i].x, mh[i].y, mh[i].z])
+      }
+      formatted = formatted.flat();
+      forwardPass(weightMap!, formatted).then((output: any) => {
+        let max = indexOfMax(output);
+        console.log("Max was " + max);
+        if (max !== 0) {
+          store.dispatch(setGestureTrigger(max))
+        }
+      });
+      startCheck();
+    }, 200);
+  }
+
+  useEffect(() => {
+      console.log("Starting up...");
+
+      startCheck();
+  }, [active, weightMap]);
 
   return (
     <div>
+      <Button color="primary" variant="contained" onClick={() => {
+        loadModel(store.getState().activeModel.id).then((res) => {
+          setWeightMap(res);
+        });
+      }
+      }><Typography>Load Model</Typography></Button>
     </div>
   );
 }
 
-async function forwardPass(weightMapPromise: tf.NamedTensorMap, data: number[]) {
-
-  const weightMap = await weightMapPromise;
-
-  if (Object.keys(weightMap).length < 1) return [0, 0];
-
+async function forwardPass(weightMap: tf.NamedTensorMap, data: number[]) {
+  if (Object.keys(weightMap).length < 1) {
+    console.error("Weight map gone wrong");
+    return [0, 0]
+  };
   const input = tf.tensor2d(data, [1, 180])
 
   const fc1_bias = weightMap['StatefulPartitionedCall/sequential/dense/BiasAdd/ReadVariableOp'];

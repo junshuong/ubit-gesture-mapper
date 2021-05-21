@@ -13,6 +13,7 @@ export interface GestureState {
     strength: number,
     volume: number,
     captures: GestureCaptureState[]
+    triggered: boolean,
 }
 
 interface DataTickState {
@@ -77,25 +78,29 @@ export const activeModelSlice = createSlice({
         },
         setAccelerometerGestureHistory: (state, action: PayloadAction<AccelerometerState>) => {
             if (state.isActive) {
-                let l: number = state.history.accelerometer.length;
-                if (l <= 30) {
+                if (state.history.accelerometer.length <= 30) {
                     state.history.accelerometer.push(action.payload);
                 }
-                if (l > 30) {
+                if (state.history.accelerometer.length > 30) {
                     state.history.accelerometer.shift();
                 }
             }
         },
         setMangetometerGestureHistory: (state, action: PayloadAction<MagnetometerState>) => {
             if (state.isActive) {
-                let l: number = state.history.magnetometer.length;
-                if (l <= 30) {
+                if (state.history.magnetometer.length <= 30) {
                     state.history.magnetometer.push(action.payload);
                 }
-                if (l > 30) {
+                if (state.history.magnetometer.length > 30) {
                     state.history.magnetometer.shift();
                 }
             }
+        },
+        setGestureTrigger: (state, action: PayloadAction<number>) => {
+            state.gestures[action.payload-1].triggered = true;
+            setTimeout(() => {
+                state.gestures[action.payload-1].triggered = false;
+            }, 2000)
         }
     }
 });
@@ -105,8 +110,12 @@ export const selectActiveModel = (state: RootState) => {
 };
 export const selectActiveModelName = (state: RootState) => state.activeModel.name;
 export const selectHistory = (state: RootState) => state.activeModel.history;
+export const selectGestureTrigger = (state: RootState, action: PayloadAction<number>) => {
+    return state.activeModel.gestures[action.payload].triggered;
+}
 
-export const { setAccelerometerGestureHistory, setMangetometerGestureHistory,setActiveModel, activate, deactivate, trigger } = activeModelSlice.actions;
+
+export const { setGestureTrigger, setAccelerometerGestureHistory, setMangetometerGestureHistory,setActiveModel, activate, deactivate, trigger } = activeModelSlice.actions;
 
 export default activeModelSlice.reducer;
 

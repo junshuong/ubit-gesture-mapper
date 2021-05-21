@@ -23,6 +23,7 @@ const initialActiveState: GestureState = {
     frequency: 0,
     strength: 0,
     volume: 0,
+    triggered: false,
     captures: []
 }
 
