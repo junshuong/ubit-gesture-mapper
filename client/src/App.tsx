@@ -1,15 +1,16 @@
 import { AppBar, Button, makeStyles, Toolbar, Typography } from '@material-ui/core';
 import React from 'react';
+import { useDispatch } from 'react-redux';
 import { BrowserRouter as Router, Link, Route, Switch } from 'react-router-dom';
 import './App.css';
 import { Alert } from './features/alert/Alert';
+import { setAlert } from './features/alert/alertSlice';
 import { MicrobitData } from './features/microbit/MicrobitData';
-import { Recorder } from './features/recorder/Recorder';
-import { Models } from './features/models/Models';
-import { connectMicrobitDevice, disconnectMicrobit } from './uBit/uBit';
 import { Model } from './features/models/Model';
-import Tracker from './tracker/Tracker';
+import { Models } from './features/models/Models';
+import { Recorder } from './features/recorder/Recorder';
 import Soundmap from './features/soundmap/Soundmap';
+import { connectMicrobitDevice, disconnectMicrobit } from './uBit/uBit';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -28,6 +29,17 @@ const useStyles = makeStyles((theme) => ({
 
 
 function App() {
+  const classes = useStyles();
+  const dispatch = useDispatch();
+
+  function connect() {
+    if (!navigator.bluetooth) {
+      dispatch(setAlert(["Bluetooth not supported in this browser", "error"]));
+      return;
+    }
+    connectMicrobitDevice();
+  }
+
   return (
     <Router>
       <div className="App">
@@ -38,14 +50,20 @@ function App() {
           <Route exact path="/models">
             <Models />
           </Route>
-          <Route exact path="/tracker" >
-            <Tracker/>
-          </Route>
-          <Route exact path="/soundmap/:gesture_id" component={Soundmap}/>
+          <Route exact path="/soundmap/:gesture_id" component={Soundmap} />
           <Route exact path="/model/:id" component={Model} />
           <Route path="/">
-            <DataHeader />
-            <MicrobitData />
+            <AppBar color="default" position="static" className={classes.root}>
+              <Toolbar>
+                <Button color="inherit" onClick={connect}>
+                  Pair MicroBit
+                </Button>
+                <Button color="inherit" onClick={disconnectMicrobit}>
+                  Disconnect MicroBit
+                </Button>
+              </Toolbar>
+            </AppBar>
+           <MicrobitData />
           </Route>
         </Switch>
       </div>
@@ -67,11 +85,6 @@ function RecordHeader() {
             Microbit
           </Button>
         </Link>
-        <Link to="/tracker" className={classes.link}>
-          <Button color="inherit">
-            Tracker
-          </Button>
-        </Link>
         <Link to="/models" className={classes.link}>
           <Button color="inherit">
             Models
@@ -80,22 +93,6 @@ function RecordHeader() {
       </Toolbar>
     </AppBar>
   )
-}
-
-function DataHeader() {
-  const classes = useStyles();
-  return (
-    <AppBar color="default" position="static" className={classes.root}>
-      <Toolbar>
-        <Button color="inherit" onClick={connectMicrobitDevice}>
-          Pair MicroBit
-          </Button>
-        <Button color="inherit" onClick={disconnectMicrobit}>
-          Disconnect MicroBit
-          </Button>
-      </Toolbar>
-    </AppBar>
-  );
 }
 
 export default App;
