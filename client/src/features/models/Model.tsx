@@ -1,13 +1,13 @@
-import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, makeStyles, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@material-ui/core';
-import * as tf from '@tensorflow/tfjs';
-import { NamedTensorMap } from '@tensorflow/tfjs';
+import { Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, makeStyles, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@material-ui/core';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { store } from '../../app/store';
 import cfg from '../../config.json';
-import { activate, GestureState, selectActiveModel, selectGestureTrigger, setActiveModel, setGestureTrigger } from './activeModelSlice';
+import MiniAudio from '../audio/MiniAudio';
+import { GestureState, selectActiveModel, setActiveModel } from './activeModelSlice';
+import ModelOutput from './ModelRunner';
 
 const useStyles = makeStyles({
   root: {
@@ -24,12 +24,13 @@ const useStyles = makeStyles({
   }
 })
 
-export function Model(props: { match: { params: { id: any } }, history: string[] }) {
+export function Model(props: { match: { params: { id: number } }, history: string[] }) {
   const id = props.match.params.id;
   const activeModel = useSelector(selectActiveModel);
   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const [createName, setCreateName] = useState("");
+  const [enabled, setEnabled] = useState(false);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -57,9 +58,17 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
   }
 
   useEffect(() => {
-    fetchModel(id);
+    axios.get(`${cfg.server_url}/get_model/${id}`).then((res) => {
+      store.dispatch(setActiveModel(res.data));
+      setEnabled(true);
+    }).catch((err) => {
+      console.error(err);
+    });
   }, [id])
 
+  if (!enabled) {
+    return (<CircularProgress />)
+  }
 
   return (
     <div>
@@ -76,9 +85,6 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
         <GestureTable gestures={activeModel.gestures} />
       </Paper>
       <Paper className={classes.root} variant="outlined">
-        {/* <Typography variant="h4">Loading the model</Typography>
-        <Typography variant="body1">Enable the model using the button below and the status of the ouput will be indicated on the checkboxes below.</Typography> */}
-
         <Button color="primary" variant="contained" onClick={sendTrainModel}>
           Train Model
         </Button>
@@ -115,70 +121,6 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
       ))}
     </div>
   );
-}
-
-function MiniAudio(props: { gesture: GestureState }) {
-  const classes = useStyles();
-  const gesture = props.gesture;
-
-  const trigger = store.getState().activeModel.gestures[gesture.classification - 1].triggered;
-
-  const [source, setSource] = useState<AudioBufferSourceNode>();
-  const [playing, setPlaying] = useState(false);
-
-  const context = new AudioContext();
-
-  function loadAudioFile() {
-    axios.get(`${cfg.server_url}/get_audio_file/${gesture.sound_file}`, { responseType: "arraybuffer" }).then((res: any) => {
-      var newSource = context.createBufferSource();
-      context.decodeAudioData(res.data, function (buffer) {
-        newSource.buffer = buffer;
-        newSource.connect(context.destination);
-        setSource(newSource);
-      });
-    }).catch((err) => {
-      console.error(err);
-    });
-  }
-
-  function handlePlaySound() {
-    if (!source || !context) return;
-    if (!playing) {
-      source.start(0);
-    } else {
-      source.stop(0);
-      loadAudioFile();
-    }
-    setPlaying(!playing);
-  }
-
-  useEffect(() => {
-    handlePlaySound();
-  }, [trigger])
-
-  useEffect(() => {
-    if (gesture.using_file) {
-      loadAudioFile()
-    }
-  }, [])
-
-  if (gesture.using_file) {
-    return (
-      <Paper className={classes.root} variant="outlined">
-        <Typography>
-          <b>{gesture.name}</b> - playing {gesture.sound_file} ACTIVE {trigger ? "YES" : "NO"}
-        </Typography>
-        <Button variant="outlined" onClick={handlePlaySound}>Play Sound</Button>
-      </Paper>
-    );
-  }
-
-
-  return (
-    <Paper className={classes.root} variant="outlined">
-      {gesture.name}
-    </Paper>
-  )
 }
 
 function createGesture(name: string, model_id: number, classification: number) {
@@ -246,111 +188,6 @@ function removeGesture(id: number, model_id: number) {
   }).catch((err) => {
     console.error(err);
   })
-}
-
-
-function indexOfMax(arr: number[]) {
-  if (arr.length === 0) {
-      return -1;
-  }
-
-  var max = arr[0];
-  var maxIndex = 0;
-
-  for (var i = 1; i < arr.length; i++) {
-      if (arr[i] > max) {
-          maxIndex = i;
-          max = arr[i];
-      }
-  }
-
-  return maxIndex;
-}
-
-
-
-function ModelOutput() {
-
-  const [active, setActive] = useState(false);
-  const [weightMap, setWeightMap] = useState<NamedTensorMap>();
-
-  async function loadModel(id: number) {
-    console.info("Requesting Tensorflow model...");
-    const weightsManifest = await fetchWeightsManifest(id);
-    const weightMap = await tf.io.loadWeights(weightsManifest, `${cfg.server_url}/get_model_part/${id}`);
-    store.dispatch(activate());
-    setActive(true);
-    console.info("Weight map set.");
-    return weightMap;
-  }
-
-
-  function startCheck() {
-    setTimeout(() => {
-      let ah = store.getState().activeModel.history.accelerometer;
-      let mh = store.getState().activeModel.history.magnetometer;
-
-      if (ah.length != 30 || mh.length != 30) {
-        console.log(ah.length, mh.length);
-        startCheck();
-        return;
-      }
-
-      let formatted = [];
-      for (var i = 0; i < 30; i++) {
-        formatted.push([ah[i].x, ah[i].y, ah[i].z, mh[i].x, mh[i].y, mh[i].z])
-      }
-      formatted = formatted.flat();
-      forwardPass(weightMap!, formatted).then((output: any) => {
-        let max = indexOfMax(output);
-        console.log("Max was " + max);
-        if (max !== 0) {
-          store.dispatch(setGestureTrigger(max))
-        }
-      });
-      startCheck();
-    }, 200);
-  }
-
-  useEffect(() => {
-      console.log("Starting up...");
-
-      startCheck();
-  }, [active, weightMap]);
-
-  return (
-    <div>
-      <Button color="primary" variant="contained" onClick={() => {
-        loadModel(store.getState().activeModel.id).then((res) => {
-          setWeightMap(res);
-        });
-      }
-      }><Typography>Load Model</Typography></Button>
-    </div>
-  );
-}
-
-async function forwardPass(weightMap: tf.NamedTensorMap, data: number[]) {
-  if (Object.keys(weightMap).length < 1) {
-    console.error("Weight map gone wrong");
-    return [0, 0]
-  };
-  const input = tf.tensor2d(data, [1, 180])
-
-  const fc1_bias = weightMap['StatefulPartitionedCall/sequential/dense/BiasAdd/ReadVariableOp'];
-  const fc1_weight = weightMap['StatefulPartitionedCall/sequential/dense/MatMul/ReadVariableOp'];
-  const fc2_bias = weightMap['StatefulPartitionedCall/sequential/dense_1/BiasAdd/ReadVariableOp']
-  const fc2_weight = weightMap['StatefulPartitionedCall/sequential/dense_1/MatMul/ReadVariableOp']
-  // const fc3 = weightMap['StatefulPartitionedCall/sequential/flatten/Const']
-  const itf1 = tf.matMul(input, fc1_weight).add(fc1_bias);
-  const f1tf2 = tf.matMul(itf1, fc2_weight).add(fc2_bias);
-  return await f1tf2.flatten().array();
-}
-
-function fetchWeightsManifest(id: number) {
-  return axios.post(`${cfg.server_url}/get_trained_model`, { id: id }).then((res) => {
-    return (res.data['weightsManifest']);
-  }).catch((err) => { return err; });
 }
 
 export function fetchModel(id: number) {
