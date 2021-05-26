@@ -112,25 +112,26 @@ Enter the URL below in the address bar of your preferred browser to access the f
 - Google Chrome/Chromium: `chrome://flags/#enable-experimental-web-platform-features`
 - Microsoft Edge: `edge://flags/#enable-experimental-web-platform-features`
 
-## Garbage that needs to be done
+## Issues
 
-- [ ] Remove some boilerplate code still hanging around.
-- [x] Update this readme with more garbage to be done.
-- [ ] Create new page to store different modules, where they can be created, access their training, and map to some sound.
-  - [x] Creation of models to allow name identifier, count of relevant frames (Maybe this needs to be a general amount to make things easier. We are always collecting these ticks anyway, so always run through the 100 ticks? I don't think that this would decrease accuracy on models that only need simple gestures i.e. ones that can be seen in ~20 ticks)
-  - [ ] Accessing training of models at any time to provide more data (if user identifies poor model accuracy, allow them to train further.)
-- [ ] Encode models on the server to pass to the client.
-  - [ ] Saving of models on the server.
-- [ ] Upgrade the models from their very simplistic current model.
-- [ ] Add TensorFlow JS to the client and create a component to work with it. Ez.
-  - [ ] Handle conversion of realtime data to tensors to feed into the model.
-  - [ ] Pass out the results to be used by other components.
-- [ ] Create a bunch of bad training data.
-- [x] Audio component
-  - [ ] Handle a number of different audio sounds/files
-  - [ ] Play them according to the state of the currently active model.
+### Bluetooth Connectivity
 
----
+There seems to be several issues with bluetooth connectivity which can prevent the Microbit from connecting properly. The suboptimal workaround is to simply reconnect until the client can properly read the sensor data. Usually a reset on the Microbit helps here.
+
+There is also other issues in these scenarios:
+- Using a battery pack: The Microbit tends to disconnect after a period of time.
+- Using bluetooth 4.0: The Microbit tends to disconnect after a period of time.
+
+The solution to both of the above issues is to use less of the bluetooth services. This means that removing the Magnetometer service from the Microbit may help. Another untested solution is to lower the tick rate of the sensor readings so that there is less information to send.
+
+### TensorFlow on the Client
+
+This issue can be described as the time taken for a forward pass through the machine learning model is greater than the speed at which we are sending in new data for the model to process. This means that there is a huge backlog of data and a delay in the readings. At one point, depending on your machines resources, the client will also crash due to this. Altering the tick rate on the sensors may also improve the current model however in addition another model suggestion is made below:
+
+#### RNN
+
+A suggested solution for future development is to use a Recurrent Neural Network. This allows us to work with time-series data rather than a static model. What this means is that instead of the current approach of sending all 30 ticks every new tick to the model, we will only need to send one every tick. This will reduce the amount of processing recquired by a large degree. 
+
 
 ## Web Audio
 
