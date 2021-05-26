@@ -48,9 +48,9 @@ def create_model(input_shape, classifier_count):
     ])
 
     model.compile(optimizer='adam',
-                  loss=tf.keras.losses.SparseCategoricalCrossentropy(
-                      from_logits=True),
-                  metrics=['accuracy'])
+                    loss=tf.keras.losses.SparseCategoricalCrossentropy(
+                    from_logits=True),
+                    metrics=['accuracy'])
 
     return model
 
@@ -70,7 +70,7 @@ def train_new_model(model_id):
     train_x = tf.concat(input_tensors, 0)
     train_y = tf.concat(target_tensors, 0)
 
-    model.fit(train_x, train_y, epochs=400)  # Fitting the data
+    model.fit(train_x, train_y, epochs=600)  # Fitting the data
     model.save_weights(f"./checkpoints/model-{model_id}")
     # Saving the raw model
     tf.saved_model.save(model, f"./learners/model-{model_id}")

@@ -41,7 +41,8 @@ export interface ActiveModelState {
     history: {
         accelerometer: AccelerometerState[],
         magnetometer: MagnetometerState[],
-    }
+    },
+    triggeredGesture: GestureState | null
 }
 
 const initialState: ActiveModelState = {
@@ -54,7 +55,8 @@ const initialState: ActiveModelState = {
     history: {
         accelerometer: [],
         magnetometer: []
-    }
+    },
+    triggeredGesture: null
 }
 
 export const activeModelSlice = createSlice({
@@ -62,10 +64,15 @@ export const activeModelSlice = createSlice({
     initialState,
     reducers: {
         setActiveModel: (state, action: PayloadAction<ActiveModelState>) => {
+            console.log(action.payload);
+            
             state.id = action.payload.id;
             state.name = action.payload.name;
             state.description = action.payload.description;
+            
             state.gestures = action.payload.gestures;
+            console.log(state.gestures);
+            
         },
         activate: state => {
             state.isActive = true;
@@ -97,10 +104,14 @@ export const activeModelSlice = createSlice({
             }
         },
         setGestureTrigger: (state, action: PayloadAction<number>) => {
-            state.gestures[action.payload-1].triggered = true;
-            setTimeout(() => {
-                state.gestures[action.payload-1].triggered = false;
-            }, 2000)
+            state.triggeredGesture = state.gestures[action.payload - 1];
+            state.triggeredGesture.triggered = true;
+        },
+        setLastTriggerOff: (state) => {
+            if (state.triggeredGesture !== null) {
+                console.log("Turning off trigger");
+                state.triggeredGesture.triggered = false;
+            }
         }
     }
 });

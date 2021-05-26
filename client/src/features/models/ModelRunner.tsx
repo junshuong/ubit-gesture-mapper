@@ -15,7 +15,9 @@ export default function ModelOutput() {
     async function loadModel() {
         console.info("Requesting Tensorflow model...");
         let id = store.getState().activeModel.id;
-        const weightsManifest = await fetchWeightsManifest();
+        const manifestResponse = await axios.post(`${cfg.server_url}/get_trained_model`, { id: id });
+        const weightsManifest = manifestResponse.data["weightsManifest"];
+        console.log(weightsManifest);
         const weightMap = await tf.io.loadWeights(weightsManifest, `${cfg.server_url}/get_model_part/${id}`);
         store.dispatch(activate());
         setActive(true);
@@ -36,14 +38,19 @@ export default function ModelOutput() {
             formatted.push([ah[i].x, ah[i].y, ah[i].z, mh[i].x, mh[i].y, mh[i].z])
         }
         formatted = formatted.flat();
-        forwardPass(weightMap!, formatted).then((output: any) => {
-            if (output !== 0) {
-                store.dispatch(setGestureTrigger(output));
-            }
-        });
+        const output = forwardPass(weightMap!, formatted);
+        const triggered = highest(output);
+        console.log(triggered);
+        if (triggered !== 0) {
+            store.dispatch(setGestureTrigger(triggered));
+        }
     }, [weightMap]);
 
-    async function forwardPass(weightMap: tf.NamedTensorMap, data: number[]) {
+    const highest = (arr: any) => {
+       return arr.indexOf(Math.max(...arr));
+    }
+
+    function forwardPass(weightMap: tf.NamedTensorMap, data: number[]) {
         if (Object.keys(weightMap).length < 1) {
             console.error("Weight map gone wrong");
             return [0, 0]
@@ -57,14 +64,7 @@ export default function ModelOutput() {
 
         const itf1 = tf.matMul(input, fc1_weight).add(fc1_bias);
         const f1tf2 = tf.matMul(itf1, fc2_weight).add(fc2_bias);
-        return await f1tf2.flatten().max();
-    }
-
-    function fetchWeightsManifest() {
-        let id = store.getState().activeModel.id;
-        return axios.post(`${cfg.server_url}/get_trained_model`, { id: id }).then((res) => {
-            setWeightMap(res.data['weightsManifest']);
-        }).catch((err) => { return err; });
+        return f1tf2.dataSync();
     }
 
     const handleClickLoadModel = () => {

@@ -191,9 +191,7 @@ function removeGesture(id: number, model_id: number) {
 }
 
 export function fetchModel(id: number) {
-  console.info("Fetching model...");
   axios.get(`${cfg.server_url}/get_model/${id}`).then((res) => {
-    console.log(res);
     store.dispatch(setActiveModel(res.data));
   }).catch((err) => {
     console.error(err);
