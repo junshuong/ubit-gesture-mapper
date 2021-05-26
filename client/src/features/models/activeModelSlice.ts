@@ -7,7 +7,13 @@ export interface GestureState {
     name: string,
     classification: number,
     model: number,
+    using_file: boolean,
+    sound_file: string,
+    frequency: number,
+    strength: number,
+    volume: number,
     captures: GestureCaptureState[]
+    triggered: boolean,
 }
 
 interface DataTickState {
@@ -35,7 +41,8 @@ export interface ActiveModelState {
     history: {
         accelerometer: AccelerometerState[],
         magnetometer: MagnetometerState[],
-    }
+    },
+    triggeredGesture: GestureState | null
 }
 
 const initialState: ActiveModelState = {
@@ -48,7 +55,8 @@ const initialState: ActiveModelState = {
     history: {
         accelerometer: [],
         magnetometer: []
-    }
+    },
+    triggeredGesture: null
 }
 
 export const activeModelSlice = createSlice({
@@ -56,12 +64,15 @@ export const activeModelSlice = createSlice({
     initialState,
     reducers: {
         setActiveModel: (state, action: PayloadAction<ActiveModelState>) => {
+            console.log(action.payload);
+            
             state.id = action.payload.id;
             state.name = action.payload.name;
             state.description = action.payload.description;
-            console.log("Setting gestures as ");
-            console.log(action.payload.gestures);
+            
             state.gestures = action.payload.gestures;
+            console.log(state.gestures);
+            
         },
         activate: state => {
             state.isActive = true;
@@ -74,24 +85,32 @@ export const activeModelSlice = createSlice({
         },
         setAccelerometerGestureHistory: (state, action: PayloadAction<AccelerometerState>) => {
             if (state.isActive) {
-                let l: number = state.history.accelerometer.length;
-                if (l <= 30) {
+                if (state.history.accelerometer.length <= 30) {
                     state.history.accelerometer.push(action.payload);
                 }
-                if (l > 30) {
+                if (state.history.accelerometer.length > 30) {
                     state.history.accelerometer.shift();
                 }
             }
         },
         setMangetometerGestureHistory: (state, action: PayloadAction<MagnetometerState>) => {
             if (state.isActive) {
-                let l: number = state.history.magnetometer.length;
-                if (l <= 30) {
+                if (state.history.magnetometer.length <= 30) {
                     state.history.magnetometer.push(action.payload);
                 }
-                if (l > 30) {
+                if (state.history.magnetometer.length > 30) {
                     state.history.magnetometer.shift();
                 }
+            }
+        },
+        setGestureTrigger: (state, action: PayloadAction<number>) => {
+            state.triggeredGesture = state.gestures[action.payload - 1];
+            state.triggeredGesture.triggered = true;
+        },
+        setLastTriggerOff: (state) => {
+            if (state.triggeredGesture !== null) {
+                console.log("Turning off trigger");
+                state.triggeredGesture.triggered = false;
             }
         }
     }
@@ -102,8 +121,12 @@ export const selectActiveModel = (state: RootState) => {
 };
 export const selectActiveModelName = (state: RootState) => state.activeModel.name;
 export const selectHistory = (state: RootState) => state.activeModel.history;
+export const selectGestureTrigger = (state: RootState, action: PayloadAction<number>) => {
+    return state.activeModel.gestures[action.payload].triggered;
+}
 
-export const { setAccelerometerGestureHistory, setMangetometerGestureHistory,setActiveModel, activate, deactivate, trigger } = activeModelSlice.actions;
+
+export const { setGestureTrigger, setAccelerometerGestureHistory, setMangetometerGestureHistory,setActiveModel, activate, deactivate, trigger } = activeModelSlice.actions;
 
 export default activeModelSlice.reducer;
 

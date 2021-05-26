@@ -4,6 +4,7 @@ import alertReducer from '../features/alert/alertSlice';
 import modelReducer from '../features/models/modelSlice';
 import activeModelReducer from '../features/models/activeModelSlice';
 import audioReducer from '../features/audio/audioSlice';
+import soundmapSlice from '../features/soundmap/soundmapSlice';
 
 export const store = configureStore({
   reducer: {
@@ -11,7 +12,8 @@ export const store = configureStore({
     alert: alertReducer,
     models: modelReducer,
     activeModel: activeModelReducer,
-    audio: audioReducer
+    audio: audioReducer,
+    soundmap: soundmapSlice
   }
 });
 

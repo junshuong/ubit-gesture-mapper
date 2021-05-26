@@ -1,14 +1,13 @@
-import { Button, ButtonBase, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, makeStyles, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@material-ui/core';
-import * as tf from '@tensorflow/tfjs';
+import { Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, makeStyles, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@material-ui/core';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { store } from '../../app/store';
 import cfg from '../../config.json';
-import { Audio } from '../audio/Audio';
-import { setIsPlaying } from '../audio/audioSlice';
-import { activate, GestureState, selectActiveModel, setActiveModel } from './activeModelSlice';
+import MiniAudio from '../audio/MiniAudio';
+import { GestureState, selectActiveModel, setActiveModel } from './activeModelSlice';
+import ModelOutput from './ModelRunner';
 
 const useStyles = makeStyles({
   root: {
@@ -25,12 +24,13 @@ const useStyles = makeStyles({
   }
 })
 
-export function Model(props: { match: { params: { id: any } }, history: string[] }) {
+export function Model(props: { match: { params: { id: number } }, history: string[] }) {
   const id = props.match.params.id;
   const activeModel = useSelector(selectActiveModel);
   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const [createName, setCreateName] = useState("");
+  const [enabled, setEnabled] = useState(false);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -46,15 +46,29 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
     });
   };
 
-  const handleCreateGesture = () => {
-    createGesture(createName, id, activeModel.gestures.length + 1);
+  function sendTrainModel() {
+    let payload = {
+      id: activeModel.id
+    }
+    axios.post(`${cfg.server_url}/train_model`, payload).then((res) => {
+      console.log(res);
+    }).catch((err) => {
+      console.error(err);
+    });
   }
 
   useEffect(() => {
-    fetchModel(id);
+    axios.get(`${cfg.server_url}/get_model/${id}`).then((res) => {
+      store.dispatch(setActiveModel(res.data));
+      setEnabled(true);
+    }).catch((err) => {
+      console.error(err);
+    });
   }, [id])
 
-  const [weightMap, setWeightMap] = useState({});
+  if (!enabled) {
+    return (<CircularProgress />)
+  }
 
   return (
     <div>
@@ -71,19 +85,14 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
         <GestureTable gestures={activeModel.gestures} />
       </Paper>
       <Paper className={classes.root} variant="outlined">
-        <Typography variant="h4">Loading the model</Typography>
-        <Typography variant="body1">Enable the model using the button below and the status of the ouput will be indicated on the checkboxes below.</Typography>
-        <Button color="primary" variant="contained" onClick={() => {
-          loadModel(activeModel.id).then((res) => {
-            setWeightMap(res);
-          })
-        }
-        }><Typography>Load Model</Typography></Button>
+        <Button color="primary" variant="contained" onClick={sendTrainModel}>
+          Train Model
+        </Button>
         <Typography>Is Active <Checkbox disabled checked={activeModel.isActive} /></Typography>
-        <ModelOutput weightMap={weightMap} />
+        <ModelOutput />
       </Paper>
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle id="form-dialog-title">Create Model</DialogTitle>
+        <DialogTitle id="form-dialog-title">Create Gesture</DialogTitle>
         <DialogContent>
           <TextField
             onChange={(e) => setCreateName(e.target.value)}
@@ -107,7 +116,9 @@ export function Model(props: { match: { params: { id: any } }, history: string[]
           </Button>
         </DialogActions>
       </Dialog>
-      <Audio />
+      {activeModel.gestures.map((gesture) => (
+        <MiniAudio key={gesture.id} gesture={gesture} />
+      ))}
     </div>
   );
 }
@@ -130,25 +141,27 @@ const GestureTable = (props: { gestures: GestureState[] }) => {
 
   return (
     <TableContainer component={Paper}>
-      <Table className={classes.table} aria-label="simple table">
+      <Table className={classes.table}>
         <TableHead>
           <TableRow>
-            <TableCell>ID</TableCell>
-            <TableCell align="right">Name</TableCell>
-            <TableCell align="right">Classification</TableCell>
-            <TableCell align="right"></TableCell>
-            <TableCell align="right"></TableCell>
+            <TableCell>Name</TableCell>
+            <TableCell align="center">Soundmap</TableCell>
+            <TableCell align="center">Training</TableCell>
+            <TableCell align="right">Delete</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {props.gestures.map((gesture) => (
             <TableRow key={gesture.id}>
-              <TableCell component="th" scope="row">
-                {gesture.id}
+              <TableCell>{gesture.name}</TableCell>
+              <TableCell align="center">
+                <Link to={`/soundmap/${gesture.id}`} className={classes.link}>
+                  <Button color="primary" variant="contained">
+                    Map
+                  </Button>
+                </Link>
               </TableCell>
-              <TableCell align="right">{gesture.name}</TableCell>
-              <TableCell align="right">{gesture.classification}</TableCell>
-              <TableCell align="right">
+              <TableCell align="center">
                 <Link to={`/recorder/${gesture.model}/${gesture.id}`} className={classes.link}>
                   <Button color="primary" variant="contained">
                     Record
@@ -156,7 +169,7 @@ const GestureTable = (props: { gestures: GestureState[] }) => {
                 </Link>
               </TableCell>
               <TableCell align="right">
-                <Button onClick={() => removeGesture(gesture.id, gesture.model)} color="primary" variant="contained">Remove</Button>
+                <Button onClick={() => removeGesture(gesture.id, gesture.model)} color="secondary" variant="contained">Remove</Button>
               </TableCell>
             </TableRow>
           ))}
@@ -177,81 +190,8 @@ function removeGesture(id: number, model_id: number) {
   })
 }
 
-async function loadModel(id: number) {
-  console.info("Requesting Tensorflow model...");
-  const weightsManifest: any = await fetchWeightsManifest(id);
-  const weightMap = await tf.io.loadWeights(weightsManifest, `${cfg.server_url}/get_model_part/${id}`);
-  store.dispatch(activate());
-  return await weightMap;
-}
-
-function ModelOutput(props: { weightMap: {} }) {
-  const activeModel = useSelector(selectActiveModel);
-  const dispatch = useDispatch();
-
-  const [on, setOn] = useState(0);
-  const [off, setOff] = useState(0);
-
-  let flattened: number[] = []
-
-  activeModel.history.accelerometer.forEach(el => {
-    flattened.push(el.x)
-    flattened.push(el.y)
-    flattened.push(el.z)
-  });
-
-  if (flattened.length === 30 * 6) {
-    forwardPass(props.weightMap, flattened).then((output: any) => {
-      setOn(output[0]);
-      setOff(output[1]);
-    })
-  }
-
-  const triggerAudio = () => {
-    const trigger = on > off;
-    dispatch(setIsPlaying([trigger]));
-    return trigger;
-  }
-
-  return (
-    <div>
-      <Typography>Triggered <Checkbox disabled checked={triggerAudio()} /></Typography>
-      <div>On</div>
-      <div>{on}</div>
-      <div>Off</div>
-      <div>{off}</div>
-    </div>
-  );
-}
-
-async function forwardPass(weightMapPromise: tf.NamedTensorMap, data: number[]) {
-
-  const weightMap = await weightMapPromise;
-
-  if (Object.keys(weightMap).length < 1) return [0, 0];
-
-  const input = tf.tensor2d(data, [1, 120])
-
-  const fc1_bias = weightMap['StatefulPartitionedCall/sequential/dense/BiasAdd/ReadVariableOp'];
-  const fc1_weight = weightMap['StatefulPartitionedCall/sequential/dense/MatMul/ReadVariableOp'];
-  const fc2_bias = weightMap['StatefulPartitionedCall/sequential/dense_1/BiasAdd/ReadVariableOp']
-  const fc2_weight = weightMap['StatefulPartitionedCall/sequential/dense_1/MatMul/ReadVariableOp']
-  // const fc3 = weightMap['StatefulPartitionedCall/sequential/flatten/Const']
-  const itf1 = tf.matMul(input, fc1_weight).add(fc1_bias);
-  const f1tf2 = tf.matMul(itf1, fc2_weight).add(fc2_bias);
-  return await f1tf2.flatten().array();
-}
-
-function fetchWeightsManifest(id: number) {
-  return axios.post(`${cfg.server_url}/get_trained_model`, { id: id }).then((res) => {
-    return (res.data['weightsManifest']);
-  }).catch((err) => { return err; });
-}
-
 export function fetchModel(id: number) {
-  console.info("Fetching model...");
   axios.get(`${cfg.server_url}/get_model/${id}`).then((res) => {
-    console.log(res);
     store.dispatch(setActiveModel(res.data));
   }).catch((err) => {
     console.error(err);

@@ -23,7 +23,7 @@ export const modelSlice = createSlice({
             state.models = action.payload;
         }
     }
-})
+});
 
 export const selectModels = (state: RootState) => state.models.models;
 

@@ -1,101 +1,51 @@
-import { Card, CardContent, Typography } from '@material-ui/core';
+import { Card, CardContent, Chip, createStyles, makeStyles, Typography } from '@material-ui/core';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import {
-  selectAccelerometerData,
-  selectButtonData,
-  selectMagnetometerBearing, selectMagnetometerCalibration, selectMagnetometerData, selectTemperature
-} from './microbitSlice';
+import { selectAccelerometerData, selectMagnetometerData } from './microbitSlice';
 
+const useStyles = makeStyles((theme) =>
+  createStyles({
+    root: {
+      flexWrap: 'wrap',
+      '& > *': {
+        margin: theme.spacing(0.5),
+      },
+    },
+    chips: {
+      '& > *': {
+        margin: theme.spacing(0.5),
+        minWidth: "80px"
+      },
+    }
+  }),
+);
 
 export function MicrobitData(props: any) {
-
+  const classes = useStyles();
+  
   return (
-    <div>
+    <div className={classes.root}>
       <Acceleration />
-      <Temperature />
-      <Buttons />
       <Magnetometer />
     </div>
   );
 }
 
-function Temperature() {
-  const temperatureData = useSelector(selectTemperature);
-
-  return (
-    <Card variant="outlined">
-      <CardContent>
-        <Typography color="textSecondary" gutterBottom>
-        </Typography>
-        <Typography variant="h5" component="h2">
-          Temperature
-        </Typography>
-        <Typography color="textSecondary">
-          Data
-        </Typography>
-        <Typography variant="body2" component="p">
-          Temperature : {temperatureData}
-        </Typography>
-      </CardContent>
-    </Card>
-  )
-}
-
 function Magnetometer() {
   const magnetometerData = useSelector(selectMagnetometerData);
-  const magnetometerBearing = useSelector(selectMagnetometerBearing);
-  const magnetometerCalibration = useSelector(selectMagnetometerCalibration);
+  const classes = useStyles();
   return (
-    <Card variant="outlined">
-      <CardContent>
-        <Typography color="textSecondary" gutterBottom>
-        </Typography>
+    <Card variant="outlined" className={classes.root}>
+      <CardContent className={classes.chips}>
         <Typography variant="h5" component="h2">
           Magnetometer
         </Typography>
-        <Typography color="textSecondary">
-          Data
-        </Typography>
-        <Typography variant="body2" component="p">
-          x : {magnetometerData.x} |
-          y : {magnetometerData.y} |
-          z : {magnetometerData.z}
-        </Typography>
-        <Typography color="textSecondary">
-          Bearing
-        </Typography>
-        <Typography variant="body2" component="p">
-          {magnetometerBearing}
-        </Typography>
-        <Typography color="textSecondary">
-          Calibration
-        </Typography>
-        <Typography variant="body2" component="p">
-          {magnetometerCalibration}
-        </Typography>
-      </CardContent>
-    </Card>
-  )
-}
-
-function Buttons() {
-  const buttonData = useSelector(selectButtonData);
-  return (
-    <Card variant="outlined">
-      <CardContent>
         <Typography color="textSecondary" gutterBottom>
+          x y z
         </Typography>
-        <Typography variant="h5" component="h2">
-          Button
-        </Typography>
-        <Typography color="textSecondary">
-          Data
-        </Typography>
-        <Typography variant="body2" component="p">
-          Button A : {buttonData.a ? "Pressed" : "Not Pressed"} <br />
-          Button B : {buttonData.b ? "Pressed" : "Not Pressed"}
-        </Typography>
+        <Chip label={magnetometerData.x} />
+        <Chip label={magnetometerData.y} />
+        <Chip label={magnetometerData.z} />
       </CardContent>
     </Card>
   )
@@ -103,23 +53,19 @@ function Buttons() {
 
 function Acceleration() {
   const accelerometerData = useSelector(selectAccelerometerData);
-
+  const classes = useStyles();
   return (
-    <Card variant="outlined">
-      <CardContent>
-        <Typography color="textSecondary" gutterBottom>
-        </Typography>
+    <Card variant="outlined" className={classes.root}>
+      <CardContent  className={classes.chips}>
         <Typography variant="h5" component="h2">
           Accelerometer
-          </Typography>
-        <Typography color="textSecondary">
-          Data
-          </Typography>
-        <Typography variant="body2" component="p">
-          x : {accelerometerData.x} |
-            y : {accelerometerData.y} |
-            z : {accelerometerData.z}
         </Typography>
+        <Typography color="textSecondary" gutterBottom>
+          x y z
+        </Typography>
+        <Chip label={accelerometerData.x} />
+        <Chip label={accelerometerData.y} />
+        <Chip label={accelerometerData.z} />
       </CardContent>
     </Card>
   )

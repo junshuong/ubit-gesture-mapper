@@ -1,165 +1,63 @@
 import { store } from '../app/store';
 import { setAlert } from '../features/alert/alertSlice';
-import { connect, disconnect, setAccelerometerData, setButtonAState, setButtonBState, setMagnetometerData, setTemperature } from '../features/microbit/microbitSlice';
+import { setAccelerometerData, setMagnetometerData } from '../features/microbit/microbitSlice';
 import { setAccelerometerGestureHistory, setMangetometerGestureHistory } from '../features/models/activeModelSlice';
 import services from './services.json';
 
-const enabledServices: BluetoothServiceUUID[] = [
-    services.accelerometer.uuid,
-    services.magnetometer.uuid
-];
+var device!: BluetoothDevice;
 
-export let uBit: uBitDevice;
+function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-/**
- * Class representing a microbit device.
- */
-class uBitDevice {
-    device!: BluetoothDevice;
-    server!: BluetoothRemoteGATTServer;
-
-    accelerometerService!: BluetoothRemoteGATTService;
-    accelerometerData!: BluetoothRemoteGATTCharacteristic;
-    accelerometerPeriod!: BluetoothRemoteGATTCharacteristic;
-
-    buttonService!: BluetoothRemoteGATTService;
-    buttonAState!: BluetoothRemoteGATTCharacteristic;
-    buttonBState!: BluetoothRemoteGATTCharacteristic;
-
-    magnetometerService!: BluetoothRemoteGATTService;
-    magnetometerBearing!: BluetoothRemoteGATTCharacteristic;
-    magnetometerCalibration!: BluetoothRemoteGATTCharacteristic;
-    magnetometerData!: BluetoothRemoteGATTCharacteristic;
-    magnetometerPeriod!: BluetoothRemoteGATTCharacteristic;
-
-    temperatureService!: BluetoothRemoteGATTService;
-    temperatureTemp!: BluetoothRemoteGATTCharacteristic;
-    temperaturePeriod!: BluetoothRemoteGATTCharacteristic;
-
-    constructor() {
-        this.initialize();
+export async function connectMicrobitDevice() {
+    device = await navigator.bluetooth.requestDevice({
+        filters: [{ namePrefix: "BBC micro:bit" }],
+        optionalServices: [
+            services.accelerometer.uuid,
+            services.magnetometer.uuid
+        ]
+    });
+    await sleep(1000)
+    console.log("Device is allegedly existing and returned by the navigator.");
+    device.addEventListener('gattserverdisconnected', onMicrobitDisconnect);
+    await sleep(1000)
+    if (device.gatt === undefined) {
+        throw new Error("GATT Server is undefined");
     }
-
-    async enableButtonA(service: BluetoothRemoteGATTService) {
-        this.buttonAState = await service.getCharacteristic(services.button.characteristics.buttonAState.uuid);
-        this.buttonAState.startNotifications();
-        this.buttonAState.addEventListener('characteristicvaluechanged', buttonAChanged);
+    let server = await device.gatt.connect();
+    
+    if (!server || server === undefined) {
+        console.error("Error connecting to GATT server");
+        return;
     }
+    console.log("Device is allegedly connected.");
+    enableServices(server);
+    store.dispatch(setAlert(["Microbit Connected", "info"]));
+}
 
-    async enableButtonB(service: BluetoothRemoteGATTService) {
-        this.buttonBState = await this.buttonService.getCharacteristic(services.button.characteristics.buttonBState.uuid);
-        this.buttonBState.startNotifications();
-        this.buttonBState.addEventListener('characteristicvaluechanged', buttonBChanged);
+
+export function disconnectMicrobit() {
+    if (!device) {
+        store.dispatch(setAlert(["There is no device connected", "info"]));
+        return;
     }
-
-    async enableButtons(server: BluetoothRemoteGATTServer) {
-        console.log("enabling buttons now");
-        this.buttonService = await server.getPrimaryService(services.button.uuid);
-        setTimeout(() => { this.enableButtonA(this.buttonService) }, 500)
-        setTimeout(() => { this.enableButtonB(this.buttonService) }, 1000)
-    }
-
-    async enableAccelerometerData(service: BluetoothRemoteGATTService) {
-        this.accelerometerData = await this.accelerometerService.getCharacteristic(services.accelerometer.characteristics.accelerometerData.uuid);
-        this.accelerometerData.startNotifications();
-        this.accelerometerData.addEventListener('characteristicvaluechanged', accelerometerDataChanged);
-    }
-
-    async enableAccelerometer(server: BluetoothRemoteGATTServer) {
-        this.accelerometerService = await server.getPrimaryService(services.accelerometer.uuid);
-        setTimeout(() => { this.enableAccelerometerData(this.accelerometerService) }, 200)
-    }
-
-    async enableMagnetometerBearing(service: BluetoothRemoteGATTService) {
-        this.magnetometerBearing = await service.getCharacteristic(services.magnetometer.characteristics.magnetometerBearing.uuid);
-        this.magnetometerBearing.startNotifications();
-        this.magnetometerBearing.addEventListener('characteristicvaluechanged', magnetometerBearingChanged);
-    }
-
-    async enableMagnetometerCalibration(service: BluetoothRemoteGATTService) {
-        this.magnetometerCalibration = await service.getCharacteristic(services.magnetometer.characteristics.magnetometerCalibration.uuid);
-        this.magnetometerCalibration.startNotifications();
-        this.magnetometerCalibration.addEventListener('characteristicvaluechanged', magnetometerCalibrationChanged);
-    }
-
-    async enableMagnetometerData(service: BluetoothRemoteGATTService) {
-        this.magnetometerData = await service.getCharacteristic(services.magnetometer.characteristics.magnetometerData.uuid);
-        this.magnetometerData.startNotifications();
-        this.magnetometerData.addEventListener('characteristicvaluechanged', magnetometerDataChanged);
-    }
-
-    async enableMagnetometer(server: BluetoothRemoteGATTServer) {
-        this.magnetometerService = await this.server.getPrimaryService(services.magnetometer.uuid);
-        setTimeout(() => { this.enableMagnetometerBearing(this.magnetometerService) }, 200)
-        setTimeout(() => { this.enableMagnetometerCalibration(this.magnetometerService) }, 400)
-        setTimeout(() => { this.enableMagnetometerData(this.magnetometerService) }, 600)
-    }
-
-    async enableTemperatureTemp(service: BluetoothRemoteGATTService) {
-        this.temperatureTemp = await this.temperatureService.getCharacteristic(services.temperature.characteristics.temperature.uuid);
-        this.temperatureTemp.startNotifications();
-        this.temperatureTemp.addEventListener('characteristicvaluechanged', temperatureChanged);
-    }
-
-    async enableTemperature(server: BluetoothRemoteGATTServer) {
-        this.temperatureService = await server.getPrimaryService(services.temperature.uuid);
-        setTimeout(() => { this.enableTemperatureTemp(this.temperatureService) }, 200)
-    }
-
-    processServices(server: BluetoothRemoteGATTServer, allServices: any) {
-        console.log("In process services");
-        setTimeout(() => {
-            let currentService = allServices.shift();
-            if (currentService !== undefined) {
-                currentService(server);
-            }
-            if (allServices.length > 0) {
-                this.processServices(server, allServices);
-            }
-        }, 2000);
-    }
-
-    async initialize() {
-        try {
-            // Connect to device and server.
-            this.device = await navigator.bluetooth.requestDevice({
-                filters: [{ namePrefix: "BBC micro:bit" }],
-                optionalServices: enabledServices
-            });
-            this.device.addEventListener('gattserverdisconnected', onMicrobitDisconnect);
-            if (this.device.gatt === undefined) {
-                throw new Error("Problem connecting to bluetooth server.");
-            }
-            this.server = await this.device.gatt.connect();
-            store.dispatch(connect());
-            store.dispatch(setAlert(["Microbit Connected", "info"]));
-
-            let allServices = [
-                () => { this.enableAccelerometer(this.server) },
-                () => { this.enableMagnetometer(this.server) },
-            ];
-            this.processServices(this.server, allServices);
-        } catch (error) {
-            store.dispatch(setAlert([error.message, "error"]));
-            console.log(error);
-        }
+    console.log("Disconnecting from mirobit device...");
+    if (device.gatt?.connected === true) {
+        device.gatt?.disconnect();
+        onMicrobitDisconnect();
+    } else {
+        console.log("Device is already disconnected");
     }
 }
 
-/**
- * Call this function to connect to a microbit.
- */
-export function connectMicrobitDevice() {
-    try {
-        if (!navigator.bluetooth) {
-            store.dispatch(setAlert(["Bluetooth is not supported on this browser configuration", "error"]));
-            throw new Error("Bluetooth is not supported on this browser configuration");
-        }
-        uBit = new uBitDevice();
-    } catch (error) {
-        console.log(error);
-    }
+function onMicrobitDisconnect() {
+    store.dispatch(setAlert(["Microbit was disconnected", "info"]));
 }
+
+/*************************************************************************/
+/* Hooks for when there are characteristic changes
+/*************************************************************************/
 
 /**
  * Event called when accelerometer data characteristic changes.
@@ -181,57 +79,34 @@ function magnetometerDataChanged(event: any) {
     store.dispatch(setMangetometerGestureHistory({ x: x, y: y, z: z }));
 }
 
-function magnetometerBearingChanged(event: any) {
-    const val = event.target.value.getInt16(0, true);
-    store.dispatch(setMagnetometerBearing(val));
+/*************************************************************************/
+/* Enabling microbit services 
+/*************************************************************************/
+
+async function enableServices(server: BluetoothRemoteGATTServer) {
+    enableAccelerometer(server);
+    setTimeout(() => {
+        enableMagnetometer(server);
+    }, 2000);
 }
 
-function magnetometerCalibrationChanged(event: any) {
-    const val = event.target.value.getInt8(0);
-    store.dispatch(setMagnetometerCalibration(val));
+async function enableMagnetometerData(service: BluetoothRemoteGATTService) {
+    const magnetometerData = await service.getCharacteristic(services.magnetometer.characteristics.magnetometerData.uuid);
+    magnetometerData.startNotifications();
+    magnetometerData.addEventListener('characteristicvaluechanged', magnetometerDataChanged);
 }
 
-async function buttonAChanged(event: any) {
-    const val = event.target.value.getInt8(0);
-    store.dispatch(setButtonAState(val));
-}
-
-async function buttonBChanged(event: any) {
-    const val = event.target.value.getInt8(0);
-    store.dispatch(setButtonBState(val));
-}
-
-function temperatureChanged(event: any) {
-    const t = event.target.value.getInt8(0);
-    store.dispatch(setTemperature(t));
-}
-
-/**
- * Call this function to disconnect any connected microbit.
- * @returns 
- */
-export function disconnectMicrobit() {
-    if (!uBit || !uBit.device || !uBit.device.gatt) {
-        store.dispatch(setAlert(["There is no device connected", "info"]));
-        return;
-    }
-    uBit.device.gatt.disconnect();
-}
-
-/**
- * Called when the microbit is disconected.
- */
-function onMicrobitDisconnect() {
-    store.dispatch(setAlert(["Microbit was disconnected", "info"]));
-    store.dispatch(disconnect());
+async function enableMagnetometer(server: BluetoothRemoteGATTServer) {
+    console.log("Enabling Magnetometer Service");
+    const magnetometerService = await server.getPrimaryService(services.magnetometer.uuid);
+    enableMagnetometerData(magnetometerService);
 }
 
 
-function setMagnetometerBearing(val: any): any {
-    throw new Error('Function not implemented.');
+async function enableAccelerometer(server: BluetoothRemoteGATTServer) {
+    console.log("Enabling Accelerometer Service");
+    const accelerometerService = await server.getPrimaryService(services.accelerometer.uuid);
+    const accelerometerData = await accelerometerService.getCharacteristic(services.accelerometer.characteristics.accelerometerData.uuid);
+    accelerometerData.startNotifications();
+    accelerometerData.addEventListener('characteristicvaluechanged', accelerometerDataChanged);
 }
-
-function setMagnetometerCalibration(val: any): any {
-    throw new Error('Function not implemented.');
-}
-

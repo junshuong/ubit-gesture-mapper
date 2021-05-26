@@ -1,25 +1,33 @@
 import os
 import random
 from platform import system
-
+import tensorflow as tf
+import numpy as np
+from database import get_all_gestures, get_classifier_count
 
 def import_data(model_id):
-    raw_data = get_all_gestures(model_id)
-    return [(g[0:-1], g[-1]) for g in raw_data]
+    x_data, y_data = get_all_gestures(model_id)
+    x_data = [sample_to_tensor(x) for x in x_data]
+    y_data = [sample_to_tensor(y) for y in y_data]
+    # Model 1 represents bad training data.
+    xb_data, yb_data = get_all_gestures(1)
+    xb_data = [sample_to_tensor(x) for x in xb_data]
+    yb_data = [sample_to_tensor([0]) for y in yb_data]
+
+    x_data = tf.concat([x_data, xb_data], 0)
+    y_data = tf.concat([y_data, yb_data], 0)
+    return x_data, y_data
 
 def random_training_sample(data):
     return data[random.randint(0, len(data)-1)]
 
 
 def sample_to_tensor(sample):
-    a = np.array(sample["data"])
+    a = np.array(sample)
     flattened = a.flatten()
-    input_tensor = np.expand_dims(flattened, 0)
-    input_tensor = tf.convert_to_tensor(input_tensor)
-    target_tensor = 1 if sample["target"] else 0
-    target_tensor = np.expand_dims(target_tensor, 0)
-    target_tensor = tf.convert_to_tensor(target_tensor)
-    return input_tensor, target_tensor
+    te = np.expand_dims(flattened, 0)
+    te = tf.convert_to_tensor(te)
+    return te
 
 
 def all_training_samples(data):
@@ -40,9 +48,9 @@ def create_model(input_shape, classifier_count):
     ])
 
     model.compile(optimizer='adam',
-                  loss=tf.keras.losses.SparseCategoricalCrossentropy(
-                      from_logits=True),
-                  metrics=['accuracy'])
+                    loss=tf.keras.losses.SparseCategoricalCrossentropy(
+                    from_logits=True),
+                    metrics=['accuracy'])
 
     return model
 
@@ -50,19 +58,19 @@ def create_model(input_shape, classifier_count):
 def train_new_model(model_id):
     # 1 Gesture, 180 data points (30 x, y, z accelerometer values and 30 x, y, z magnetometer values)
     input_shape = (1, 180)
-    classifier_count = 2  # Number of unique possible outputs
+    classifier_count = get_classifier_count(model_id)+1  # Number of unique possible outputs
     print("Creating model")
+    print(f"classifier length {classifier_count}")
     # Creating the classifier
     model = create_model(input_shape, classifier_count)
     # Importing the data from the database
-    training_data = list(zip(*import_data(model_id)))
-    input_tensors, target_tensors = training_data[0], training_data[1]
+    input_tensors, target_tensors = import_data(model_id)
     print(f"Length inputs: {len(input_tensors[0])}")
     # Shaping x and y (because tensorflow)
-    # train_x = tf.concat(input_tensors, 0)
-    # train_y = tf.concat(target_tensors, 0)
+    train_x = tf.concat(input_tensors, 0)
+    train_y = tf.concat(target_tensors, 0)
 
-    model.fit(input_tensors, target_tensors, epochs=20)  # Fitting the data
+    model.fit(train_x, train_y, epochs=600)  # Fitting the data
     model.save_weights(f"./checkpoints/model-{model_id}")
     # Saving the raw model
     tf.saved_model.save(model, f"./learners/model-{model_id}")
