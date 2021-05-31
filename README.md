@@ -43,6 +43,17 @@ venv\Scripts\activate
 
 Note the script to activate the venv may be slightly different on other platforms.
 
+Note: If you are using Windows, check execution policy to see if your system allows execution of scripts. 
+
+```
+Get-ExecutionPolicy
+```
+
+If `Restricted` is displayed, open PowerShell in admin mode and set execution policy to `RemoteSigned`.
+```
+Get-ExecutionPolicy RemoteSigned
+```
+
 Then installing the dependencies once the virtual environment is active:
 
 ```bash
@@ -72,6 +83,14 @@ flask run
 ```
 
 If your local machine has Bluetooth connectivity, you can connect to the app over `localhost` and do not need to use HTTPS/Ngrok. For example, if the client and sever are running on a laptop that has a Bluetooth adapter, you can connect the micro:bit to the app using the URL `http://localhost:3000`. If this is not possible, you must setup HTTPS or use Ngrok as described below.
+
+Note: On Windows, there is a MAX_PATH limitation when installing dependencies from a folder with a long PATH name (files are nested deep within folders). To bypass this issue, enter the command below (in PowerShell):
+
+```
+New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
+-Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+```
+to enable long paths. 
 
 ### Ngrok
 
